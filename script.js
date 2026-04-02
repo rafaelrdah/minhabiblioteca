@@ -7,22 +7,15 @@ let colecaoEditandoId = null;
 const LIVROS_POR_PRATELEIRA = 6;
 
 // ==========================================
-// SISTEMA DE SALVAMENTO (LOCAL STORAGE)
+// SALVAMENTO AUTOMÁTICO
 // ==========================================
-// Carrega os dados salvos no navegador quando a página abre
 function carregarDados() {
   const bibliotecaSalva = localStorage.getItem('minhaBiblioteca');
   const colecoesSalvas = localStorage.getItem('minhasColecoes');
-
-  if (bibliotecaSalva) {
-    minhaBiblioteca = JSON.parse(bibliotecaSalva);
-  }
-  if (colecoesSalvas) {
-    minhasColecoes = JSON.parse(colecoesSalvas);
-  }
+  if (bibliotecaSalva) minhaBiblioteca = JSON.parse(bibliotecaSalva);
+  if (colecoesSalvas) minhasColecoes = JSON.parse(colecoesSalvas);
 }
 
-// Salva os dados no navegador toda vez que algo muda
 function salvarDados() {
   localStorage.setItem('minhaBiblioteca', JSON.stringify(minhaBiblioteca));
   localStorage.setItem('minhasColecoes', JSON.stringify(minhasColecoes));
@@ -45,7 +38,7 @@ function fecharModal(idModal) {
 }
 
 // ==========================================
-// ADICIONAR LIVRO
+// LIVROS: ADICIONAR E APAGAR
 // ==========================================
 function abrirModalAddLivro() {
   document.getElementById('addTitulo').value = '';
@@ -62,22 +55,27 @@ function salvarNovoLivro() {
   if (!titulo) { mostrarAviso("Digite o Título do livro!"); return; }
   if (!imagem) imagem = 'https://via.placeholder.com/130x190/2a080d/f0e6d2?text=Sem+Capa';
 
-  const novoLivro = { 
-    id: Date.now(), titulo, autor, imagem, 
-    colecaoPertencente: visaoAtualColecaoId, 
-    status: 'nao-lido' 
-  };
-  
+  const novoLivro = { id: Date.now(), titulo, autor, imagem, colecaoPertencente: visaoAtualColecaoId, status: 'nao-lido' };
   minhaBiblioteca.push(novoLivro);
   
-  salvarDados(); // Salva a alteração
+  salvarDados();
   fecharModal('modal-add-livro');
   renderizarEstante();
   mostrarAviso(visaoAtualColecaoId ? "Adicionado à Coleção!" : "Adicionado à Estante!");
 }
 
+function apagarLivro() {
+  if (confirm("Tem certeza que deseja apagar este livro da biblioteca?")) {
+    minhaBiblioteca = minhaBiblioteca.filter(l => l.id !== livroEditandoStatus);
+    salvarDados();
+    fecharModal('modal-status-livro');
+    renderizarEstante();
+    mostrarAviso("Livro apagado com sucesso.");
+  }
+}
+
 // ==========================================
-// CRIAR E EDITAR COLEÇÕES
+// COLEÇÕES: CRIAR, EDITAR E APAGAR
 // ==========================================
 function abrirModalCriarColecao() {
   document.getElementById('nomeColecao').value = '';
@@ -90,8 +88,7 @@ function abrirModalCriarColecao() {
     listaHtml.innerHTML = '<p style="color: #888; font-size: 13px;">Nenhum livro solto na estante.</p>';
   } else {
     livrosSoltos.forEach(livro => {
-      listaHtml.innerHTML += `
-        <label class="checkbox-item"><input type="checkbox" value="${livro.id}" class="check-livro-colecao">${livro.titulo}</label>`;
+      listaHtml.innerHTML += `<label class="checkbox-item"><input type="checkbox" value="${livro.id}" class="check-livro-colecao">${livro.titulo}</label>`;
     });
   }
   document.getElementById('modal-criar-colecao').classList.remove('oculto');
@@ -111,7 +108,7 @@ function salvarNovaColecao() {
     if (livro) livro.colecaoPertencente = novaColecao.id; 
   });
 
-  salvarDados(); // Salva a alteração
+  salvarDados();
   fecharModal('modal-criar-colecao');
   renderizarEstante();
   mostrarAviso("Coleção criada!");
@@ -120,23 +117,49 @@ function salvarNovaColecao() {
 function abrirModalEditarColecao(idCol) {
   colecaoEditandoId = idCol;
   const colecao = minhasColecoes.find(c => c.id === idCol);
-  
   document.getElementById('editNomeColecao').value = colecao.nome;
   document.getElementById('editImagemColecao').value = colecao.imagem;
   
-  const listaHtml = document.getElementById('lista-livros-soltos-editar');
-  listaHtml.innerHTML = '';
-  
-  const livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
-  if (livrosSoltos.length === 0) {
-    listaHtml.innerHTML = '<p style="color: #888; font-size: 13px;">Todos os seus livros já estão em coleções.</p>';
+  // Lista 1: Livros já dentro (Para remover)
+  const livrosNaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === idCol);
+  const listaDentroHtml = document.getElementById('lista-livros-na-colecao');
+  listaDentroHtml.innerHTML = '';
+  if(livrosNaColecao.length === 0) {
+    listaDentroHtml.innerHTML = '<p style="color: #888; font-size: 13px;">Nenhum livro nesta coleção.</p>';
   } else {
-    livrosSoltos.forEach(livro => {
-      listaHtml.innerHTML += `
-        <label class="checkbox-item"><input type="checkbox" value="${livro.id}" class="check-livro-editar-col">${livro.titulo}</label>`;
+    livrosNaColecao.forEach(livro => {
+      listaDentroHtml.innerHTML += `
+        <div class="checkbox-item" style="justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 5px;">
+          <span>${livro.titulo}</span>
+          <button class="btn-perigo" style="padding: 6px 12px; font-size: 11px;" onclick="removerLivroDaColecaoPelaEdicao(${livro.id})">Remover</button>
+        </div>`;
     });
   }
+
+  // Lista 2: Livros soltos (Para adicionar)
+  const livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
+  const listaSoltosHtml = document.getElementById('lista-livros-soltos-editar');
+  listaSoltosHtml.innerHTML = '';
+  if (livrosSoltos.length === 0) {
+    listaSoltosHtml.innerHTML = '<p style="color: #888; font-size: 13px;">Nenhum livro solto na estante.</p>';
+  } else {
+    livrosSoltos.forEach(livro => {
+      listaSoltosHtml.innerHTML += `<label class="checkbox-item"><input type="checkbox" value="${livro.id}" class="check-livro-editar-col">${livro.titulo}</label>`;
+    });
+  }
+
   document.getElementById('modal-editar-colecao').classList.remove('oculto');
+}
+
+function removerLivroDaColecaoPelaEdicao(idLivro) {
+  const livro = minhaBiblioteca.find(l => l.id === idLivro);
+  if (livro) {
+    livro.colecaoPertencente = null;
+    salvarDados();
+    abrirModalEditarColecao(colecaoEditandoId); // Atualiza os campos na hora
+    renderizarEstante(); 
+    mostrarAviso("Livro removido da coleção.");
+  }
 }
 
 function salvarEdicaoColecao() {
@@ -151,14 +174,28 @@ function salvarEdicaoColecao() {
     });
   }
   
-  salvarDados(); // Salva a alteração
+  salvarDados();
   fecharModal('modal-editar-colecao');
   renderizarEstante();
   mostrarAviso("Coleção atualizada!");
 }
 
+function apagarColecao() {
+  if (confirm("Deseja apagar esta coleção? Os livros dentro dela voltarão para a estante principal.")) {
+    minhaBiblioteca.forEach(l => { if(l.colecaoPertencente === colecaoEditandoId) l.colecaoPertencente = null; });
+    minhasColecoes = minhasColecoes.filter(c => c.id !== colecaoEditandoId);
+    
+    salvarDados();
+    fecharModal('modal-editar-colecao');
+    if(visaoAtualColecaoId === colecaoEditandoId) visaoAtualColecaoId = null;
+    
+    renderizarEstante();
+    mostrarAviso("Coleção apagada.");
+  }
+}
+
 // ==========================================
-// EDITAR LIVRO (STATUS E DADOS)
+// EDIÇÃO E STATUS DO LIVRO
 // ==========================================
 function abrirModalStatus(idLivro) {
   const livro = minhaBiblioteca.find(l => l.id === idLivro);
@@ -166,40 +203,51 @@ function abrirModalStatus(idLivro) {
 
   livroEditandoStatus = livro.id;
   document.getElementById('img-status-livro').src = livro.imagem;
-  
   document.getElementById('editTituloLivro').value = livro.titulo;
   document.getElementById('editAutorLivro').value = livro.autor || '';
   document.getElementById('editImagemLivro').value = livro.imagem;
   document.getElementById('select-status-livro').value = livro.status;
 
+  const btnSairCol = document.getElementById('btn-remover-da-colecao');
+  if(livro.colecaoPertencente) btnSairCol.classList.remove('oculto');
+  else btnSairCol.classList.add('oculto');
+
   document.getElementById('modal-status-livro').classList.remove('oculto');
+}
+
+function removerLivroDaColecaoPeloLivro() {
+  const livro = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
+  if (livro) {
+    livro.colecaoPertencente = null;
+    salvarDados();
+    fecharModal('modal-status-livro');
+    renderizarEstante();
+    mostrarAviso("Livro voltou para a estante.");
+  }
 }
 
 function salvarStatusLivro() {
   if (!livroEditandoStatus) return;
   const livro = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
-  
   if (livro) {
     livro.titulo = document.getElementById('editTituloLivro').value.trim() || livro.titulo;
     livro.autor = document.getElementById('editAutorLivro').value.trim() || livro.autor;
     livro.imagem = document.getElementById('editImagemLivro').value.trim() || livro.imagem;
     livro.status = document.getElementById('select-status-livro').value;
   }
-
-  salvarDados(); // Salva a alteração
+  
+  salvarDados();
   fecharModal('modal-status-livro');
   renderizarEstante();
   mostrarAviso("Livro atualizado!");
 }
 
 // ==========================================
-// RENDERIZAÇÃO INTELIGENTE
+// RENDERIZAÇÃO DA ESTANTE
 // ==========================================
 function fatiarArray(array, tamanho) {
   const fatiado = [];
-  for (let i = 0; i < array.length; i += tamanho) {
-    fatiado.push(array.slice(i, i + tamanho));
-  }
+  for (let i = 0; i < array.length; i += tamanho) fatiado.push(array.slice(i, i + tamanho));
   return fatiado;
 }
 
@@ -241,15 +289,8 @@ function renderizarEstante() {
   });
 }
 
-function fecharColecaoAtual() {
-  visaoAtualColecaoId = null;
-  renderizarEstante();
-}
-
-function abrirColecao(idColecao) {
-  visaoAtualColecaoId = idColecao;
-  renderizarEstante();
-}
+function fecharColecaoAtual() { visaoAtualColecaoId = null; renderizarEstante(); }
+function abrirColecao(idColecao) { visaoAtualColecaoId = idColecao; renderizarEstante(); }
 
 function formatarStatus(status) {
   if (status === 'lido') return 'Lido';
@@ -261,9 +302,7 @@ function gerarBotaoVoltar() {
   const wrapper = document.createElement('div');
   wrapper.className = 'livro-wrapper';
   wrapper.onclick = fecharColecaoAtual;
-  wrapper.innerHTML = `
-    <div class="cartao-voltar"><span>↩</span> Voltar</div>
-    <div class="livro-titulo-container"><span class="livro-titulo-texto">Fechar</span></div>`;
+  wrapper.innerHTML = `<div class="cartao-voltar"><span>↩</span> Voltar</div><div class="livro-titulo-container"><span class="livro-titulo-texto">Fechar</span></div>`;
   return wrapper;
 }
 
@@ -271,26 +310,13 @@ function gerarElementoLivro(livro, isColecao = false) {
   const wrapper = document.createElement('div');
   wrapper.className = 'livro-wrapper';
   
-  if (isColecao) {
-    wrapper.onclick = () => abrirColecao(livro.id);
-  } else {
-    wrapper.onclick = () => abrirModalStatus(livro.id);
-  }
+  if (isColecao) wrapper.onclick = () => abrirColecao(livro.id);
+  else wrapper.onclick = () => abrirModalStatus(livro.id);
 
   let htmlExtras = '';
   if (isColecao) {
-    const iconeLapis = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"></path>
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-      </svg>
-    `;
-    
-    htmlExtras = `
-      <div class="btn-editar-lapiz" onclick="event.stopPropagation(); abrirModalEditarColecao('${livro.id}')">
-        ${iconeLapis}
-      </div>
-    `;
+    const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+    htmlExtras = `<div class="btn-editar-lapiz" onclick="event.stopPropagation(); abrirModalEditarColecao('${livro.id}')">${iconeLapis}</div>`;
   } else {
     htmlExtras = `<div class="status-badge status-${livro.status}">${formatarStatus(livro.status)}</div>`;
   }
@@ -310,8 +336,29 @@ function gerarElementoLivro(livro, isColecao = false) {
 }
 
 // ==========================================
-// INICIALIZAÇÃO
+// INSTALAÇÃO DO PWA (APP NO CELULAR)
 // ==========================================
-// Executa ao abrir a página: Carrega os dados salvos e desenha a estante
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('Erro no Service Worker:', err));
+}
+
+let eventoInstalacao;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  eventoInstalacao = e;
+  document.getElementById('btn-instalar').classList.remove('oculto');
+});
+
+function instalarApp() {
+  if (eventoInstalacao) {
+    eventoInstalacao.prompt();
+    eventoInstalacao.userChoice.then((resultado) => {
+      if (resultado.outcome === 'accepted') document.getElementById('btn-instalar').classList.add('oculto');
+      eventoInstalacao = null;
+    });
+  }
+}
+
+// Inicializa a página
 carregarDados();
 renderizarEstante();
