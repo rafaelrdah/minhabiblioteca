@@ -7,7 +7,7 @@ let colecaoEditandoId = null;
 const LIVROS_POR_PRATELEIRA = 6;
 
 // ==========================================
-// SALVAMENTO AUTOMÁTICO
+// SALVAMENTO AUTOMÁTICO E PROCESSAMENTO DE IMAGEM
 // ==========================================
 function carregarDados() {
   const bibliotecaSalva = localStorage.getItem('minhaBiblioteca');
@@ -19,6 +19,59 @@ function carregarDados() {
 function salvarDados() {
   localStorage.setItem('minhaBiblioteca', JSON.stringify(minhaBiblioteca));
   localStorage.setItem('minhasColecoes', JSON.stringify(minhasColecoes));
+}
+
+// NOVO: Função para comprimir foto do celular
+function processarUploadImagem(event, inputIdTarget, imgPreviewId = null) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  mostrarAviso("Processando imagem...");
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      // Tamanho máximo ideal para as capas (Deixa super leve)
+      const MAX_WIDTH = 300; 
+      const MAX_HEIGHT = 450;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Comprime para 70% de qualidade e converte em texto (Base64)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      
+      // Joga a imagem compactada dentro do campo de texto
+      document.getElementById(inputIdTarget).value = dataUrl;
+      
+      // Se tiver uma capa de demonstração aberta (como na edição), atualiza a foto na hora
+      if (imgPreviewId) {
+        document.getElementById(imgPreviewId).src = dataUrl;
+      }
+      
+      mostrarAviso("Capa carregada com sucesso!");
+    }
+    img.src = e.target.result;
+  }
+  reader.readAsDataURL(file);
 }
 
 // ==========================================
@@ -38,7 +91,7 @@ function fecharModal(idModal) {
 }
 
 // ==========================================
-// BUSCA NA WEB (MEGAZORD: 6 APIs JUNTAS)
+// BUSCA NA WEB (RÁPIDA: GOOGLE + OPEN LIBRARY)
 // ==========================================
 async function buscarLivroWeb() {
   const inputBusca = document.getElementById('buscaWebInput');
@@ -50,17 +103,12 @@ async function buscarLivroWeb() {
     return;
   }
 
-  container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando em todos os acervos disponíveis...</p>';
+  container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando...</p>';
   container.classList.remove('oculto');
 
   let resultadosMisturados = [];
-  
-  // Limpa o texto para verificar se é um código ISBN válido
-  const cleanQuery = query.replace(/[\s-]/g, '');
-  const isISBN = /^(?:\d{9}[\dX]|\d{13})$/i.test(cleanQuery);
 
-  // 1. Google Books (PT-BR Focus)
-  const promessaGoogle = fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&langRestrict=pt&maxResults=5`)
+  const promessaGoogle = fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&langRestrict=pt&maxResults=10`)
     .then(res => res.json())
     .then(data => {
       if (data.items) {
@@ -68,95 +116,47 @@ async function buscarLivroWeb() {
           const info = item.volumeInfo;
           let imagem = info.imageLinks ? info.imageLinks.thumbnail : '';
           if (imagem) imagem = imagem.replace('http:', 'https:'); 
-          return { titulo: info.title || 'Sem título', autor: info.authors ? info.authors.join(', ') : 'Desconhecido', imagem: imagem, origem: 'Google' };
+          return {
+            titulo: info.title || 'Sem título',
+            autor: info.authors ? info.authors.join(', ') : 'Desconhecido',
+            imagem: imagem,
+            origem: 'Google'
+          };
         });
       }
       return [];
-    }).catch(() => []);
+    });
 
-  // 2. Open Library
-  const promessaOpenLib = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`)
+  const promessaOpenLib = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`)
     .then(res => res.json())
     .then(data => {
       if (data.docs) {
         return data.docs.map(doc => {
           let imagem = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : '';
-          return { titulo: doc.title || 'Sem título', autor: doc.author_name ? doc.author_name.join(', ') : 'Desconhecido', imagem: imagem, origem: 'OpenLib' };
+          return {
+            titulo: doc.title || 'Sem título',
+            autor: doc.author_name ? doc.author_name.join(', ') : 'Desconhecido',
+            imagem: imagem,
+            origem: 'Open Lib'
+          };
         });
       }
       return [];
-    }).catch(() => []);
-
-  // 3. BrasilAPI (Reforço PT-BR EXCLUSIVO para ISBN)
-  let promessaBrasilAPI = Promise.resolve([]);
-  if (isISBN) {
-    promessaBrasilAPI = fetch(`https://brasilapi.com.br/api/isbn/v1/${cleanQuery}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && data.title) {
-          return [{ titulo: data.title, autor: data.authors ? data.authors.join(', ') : 'Desconhecido', imagem: data.cover_url || '', origem: 'BrasilAPI' }];
-        }
-        return [];
-      }).catch(() => []); 
-  }
-
-  // 4. Gutendex (Project Gutenberg API)
-  const promessaGutendex = fetch(`https://gutendex.com/books?search=${encodeURIComponent(query)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.results) {
-        return data.results.slice(0, 5).map(book => ({
-          titulo: book.title, 
-          autor: book.authors.map(a => a.name).join(', ') || 'Desconhecido', 
-          imagem: book.formats['image/jpeg'] || '', 
-          origem: 'Gutendex'
-        }));
-      }
-      return [];
-    }).catch(() => []);
-
-  // 5. Internet Archive
-  const promessaArchive = fetch(`https://archive.org/advancedsearch.php?q=title:(${encodeURIComponent(query)})&fl[]=title,creator,identifier&output=json&rows=5`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.response && data.response.docs) {
-        return data.response.docs.map(doc => ({
-          titulo: doc.title || 'Sem título',
-          autor: doc.creator ? (Array.isArray(doc.creator) ? doc.creator.join(', ') : doc.creator) : 'Desconhecido',
-          imagem: doc.identifier ? `https://archive.org/services/img/${doc.identifier}` : '',
-          origem: 'Archive'
-        }));
-      }
-      return [];
-    }).catch(() => []);
-
-  // 6. WorldCat (Nota: Costuma falhar no Client-Side por CORS sem chave de API, mas se passar, vai pra lista)
-  const promessaWorldCat = fetch(`https://www.worldcat.org/webservices/catalog/search/opensearch?q=${encodeURIComponent(query)}&format=json`)
-    .then(res => res.json())
-    .then(data => []) // Ajustar o mapeamento se o endpoint um dia for aberto
-    .catch(() => []); // O catch abafa o erro vermelho do console e deixa a página viva
-
-  try {
-    // Taca tudo junto!
-    const respostas = await Promise.allSettled([
-      promessaGoogle, promessaOpenLib, promessaBrasilAPI, promessaGutendex, promessaArchive, promessaWorldCat
-    ]);
-
-    // Extrai quem teve sucesso e concatena na lista final
-    respostas.forEach(res => {
-      if (res.status === 'fulfilled' && res.value.length > 0) {
-        resultadosMisturados = resultadosMisturados.concat(res.value);
-      }
     });
 
+  try {
+    const respostas = await Promise.allSettled([promessaGoogle, promessaOpenLib]);
+
+    if (respostas[0].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[0].value);
+    if (respostas[1].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[1].value);
+
     if (resultadosMisturados.length === 0) {
-      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado nas 6 bases.</p>';
+      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado nas bases.</p>';
       return;
     }
 
     container.innerHTML = ''; 
 
-    // Renderiza cada item encontrado
     resultadosMisturados.forEach(livro => {
       const div = document.createElement('div');
       div.className = 'item-resultado-busca';
@@ -186,7 +186,7 @@ async function buscarLivroWeb() {
     });
 
   } catch (error) {
-    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro interno ao processar a busca.</p>';
+    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro ao buscar na internet.</p>';
   }
 }
 
@@ -197,6 +197,7 @@ function abrirModalAddLivro() {
   document.getElementById('addTitulo').value = '';
   document.getElementById('addAutor').value = '';
   document.getElementById('addImagem').value = '';
+  document.getElementById('fileAddLivro').value = ''; // Limpa o arquivo da memória
   document.getElementById('buscaWebInput').value = '';
   document.getElementById('resultados-busca').classList.add('oculto');
   document.getElementById('modal-add-livro').classList.remove('oculto');
@@ -235,6 +236,7 @@ function apagarLivro() {
 function abrirModalCriarColecao() {
   document.getElementById('nomeColecao').value = '';
   document.getElementById('imagemColecao').value = '';
+  document.getElementById('fileAddColecao').value = '';
   const listaHtml = document.getElementById('lista-livros-soltos');
   listaHtml.innerHTML = '';
   
@@ -274,6 +276,7 @@ function abrirModalEditarColecao(idCol) {
   const colecao = minhasColecoes.find(c => c.id === idCol);
   document.getElementById('editNomeColecao').value = colecao.nome;
   document.getElementById('editImagemColecao').value = colecao.imagem;
+  document.getElementById('fileEditColecao').value = '';
   
   const livrosNaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === idCol);
   const listaDentroHtml = document.getElementById('lista-livros-na-colecao');
@@ -359,6 +362,7 @@ function abrirModalStatus(idLivro) {
   document.getElementById('editTituloLivro').value = livro.titulo;
   document.getElementById('editAutorLivro').value = livro.autor || '';
   document.getElementById('editImagemLivro').value = livro.imagem;
+  document.getElementById('fileEditLivro').value = '';
   document.getElementById('select-status-livro').value = livro.status;
 
   const btnSairCol = document.getElementById('btn-remover-da-colecao');
