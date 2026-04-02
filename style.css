@@ -26,7 +26,7 @@ body {
 }
 
 /* =========================================
-   2. CABEÇALHO (BLUR) E BOTÕES DO TOPO
+   2. CABEÇALHO E BOTÕES DO TOPO
    ========================================= */
 header {
   position: relative; padding: 40px 20px 30px 20px; text-align: center;
@@ -49,28 +49,13 @@ header h1 { margin-top: 0; letter-spacing: 1px; color: #fff; font-weight: 800; }
   border-radius: 8px !important; box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
 }
 
-/* NOVO: Botão de opções (Três pontinhos no topo direito) */
 .btn-opcoes-topo {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.6);
-  padding: 8px;
-  cursor: pointer;
-  z-index: 100;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  position: absolute; top: 15px; right: 15px;
+  background: transparent; border: none; color: rgba(255,255,255,0.6);
+  padding: 8px; cursor: pointer; z-index: 100; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
-
-.btn-opcoes-topo:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
+.btn-opcoes-topo:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 /* =========================================
    3. INPUTS E BOTÕES GERAIS
@@ -83,33 +68,14 @@ input, select {
 }
 input:focus { border-color: var(--cor-destaque); }
 
-.input-com-icone {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-  margin-bottom: 10px;
-}
-.input-com-icone input[type="text"] {
-  margin-bottom: 0; 
-  flex: 1;
-}
+.input-com-icone { display: flex; gap: 10px; align-items: stretch; margin-bottom: 10px; }
+.input-com-icone input[type="text"] { margin-bottom: 0; flex: 1; }
 .btn-icone {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 0 15px;
-  cursor: pointer;
-  color: #aaa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s;
+  background-color: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px; padding: 0 15px; cursor: pointer; color: #aaa;
+  display: flex; justify-content: center; align-items: center; transition: all 0.2s;
 }
-.btn-icone:hover {
-  background-color: rgba(139, 28, 49, 0.5);
-  border-color: var(--cor-destaque);
-  color: #fff;
-}
+.btn-icone:hover { background-color: rgba(139, 28, 49, 0.5); border-color: var(--cor-destaque); color: #fff; }
 
 .btn-primario {
   background: linear-gradient(90deg, var(--cor-destaque), #a1233b);
@@ -133,67 +99,79 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   4. ACORDEÃO DE COLEÇÕES
+   4. ACORDEÃO E BOLINHAS DE STATUS (NOVO!)
    ========================================= */
-.secao-colecoes {
-  margin-bottom: 20px;
-}
-
-.colecao-accordion-box {
-  margin-bottom: 10px;
-}
-
-.colecao-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.secao-colecoes { margin-bottom: 20px; }
+.colecao-accordion-box { margin-bottom: 10px; }
+.colecao-header { display: flex; align-items: center; gap: 10px; }
 
 .btn-colecao-toggle {
-  flex: 1;
-  background: linear-gradient(90deg, #1c0508, var(--cor-vinho)); 
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-left: 4px solid var(--cor-destaque);
-  padding: 12px 20px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  transition: all 0.2s;
+  flex: 1; background: linear-gradient(90deg, #1c0508, var(--cor-vinho)); 
+  color: #fff; border: 1px solid rgba(255,255,255,0.1); border-left: 4px solid var(--cor-destaque);
+  padding: 12px 20px; border-radius: 12px; display: flex; align-items: center;
+  cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.2s;
 }
-
-.btn-colecao-toggle:hover {
-  filter: brightness(1.2);
-  transform: translateX(4px);
-}
+.btn-colecao-toggle:hover { filter: brightness(1.2); transform: translateX(4px); }
 
 .btn-colecao-editar {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #aaa;
-  cursor: pointer;
-  padding: 12px;
-  border-radius: 12px;
-  display: flex;
-  transition: all 0.2s;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: #aaa; cursor: pointer; padding: 12px; border-radius: 12px;
+  display: flex; transition: all 0.2s;
 }
+.btn-colecao-editar:hover { background: rgba(139, 28, 49, 0.4); color: #fff; border-color: var(--cor-destaque); }
 
-.btn-colecao-editar:hover {
-  background: rgba(139, 28, 49, 0.4);
-  color: #fff;
-  border-color: var(--cor-destaque);
-}
-
-.colecao-estante-conteudo {
-  margin-top: 15px;
-  animation: deslizarBaixo 0.3s ease-out forwards;
-}
+.colecao-estante-conteudo { margin-top: 15px; animation: deslizarBaixo 0.3s ease-out forwards; }
 
 @keyframes deslizarBaixo {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Container das bolinhas */
+.status-dots-wrapper {
+  display: flex; gap: 10px; margin-right: 12px;
+}
+
+/* Item individual com Foco para ativar o Balão HQ no Celular */
+.dot-item {
+  position: relative; display: flex; align-items: center; gap: 4px;
+  cursor: pointer; outline: none;
+}
+
+/* As bolinhas pequenas */
+.circle { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.dot-verde { background-color: #27ae60; }
+.dot-cinza { background-color: #7f8c8d; }
+.dot-carmim { background-color: var(--cor-destaque); }
+
+/* Numero ao lado da bolinha */
+.dot-count { font-size: 11px; color: rgba(255,255,255,0.8); font-weight: normal; }
+
+/* O Balão de HQ em si (Tooltip CSS) */
+.dot-item::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 160%; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background-color: #f4f4f4; color: #0a0a0c; padding: 4px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: bold; white-space: nowrap;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 200;
+}
+
+/* O triangulo (A ponta da seta do Balão) */
+.dot-item::before {
+  content: ''; position: absolute; bottom: 110%; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  border-width: 5px; border-style: solid; border-color: #f4f4f4 transparent transparent transparent;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200;
+}
+
+/* Quando você passa o mouse, clica, foca, ou aperta o dedo: o balão salta! */
+.dot-item:focus::after, .dot-item:active::after, .dot-item:hover::after,
+.dot-item:focus::before, .dot-item:active::before, .dot-item:hover::before {
+  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
 }
 
 /* =========================================
@@ -231,7 +209,6 @@ input:focus { border-color: var(--cor-destaque); }
   90%, 100% { transform: translateX(calc(120px - 100%)); }
 }
 
-/* Tag de Status Diagonal */
 .status-badge {
   position: absolute; top: 15px; left: -15px;
   padding: 5px 10px; font-size: 11px; font-weight: bold; color: white;
@@ -243,7 +220,7 @@ input:focus { border-color: var(--cor-destaque); }
 .status-nao-lido { background-color: #555; } 
 
 /* =========================================
-   6. MODAIS E AVISOS FLUTUANTES
+   6. MODAIS E AVISOS
    ========================================= */
 .modal {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -283,82 +260,35 @@ input:focus { border-color: var(--cor-destaque); }
 .aviso.oculto { opacity: 0; top: -20px; }
 
 /* =========================================
-   7. RESULTADOS DE BUSCA WEB NO MODAL
+   7. RESULTADOS DE BUSCA
    ========================================= */
 .resultados-scroll {
-  max-height: 180px; 
-  overflow-y: auto;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-height: 180px; overflow-y: auto; background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255, 255, 255, 0.05);
 }
-
-.resultados-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.resultados-scroll::-webkit-scrollbar-thumb {
-  background: var(--cor-destaque);
-  border-radius: 4px;
-}
+.resultados-scroll::-webkit-scrollbar { width: 4px; }
+.resultados-scroll::-webkit-scrollbar-thumb { background: var(--cor-destaque); border-radius: 4px; }
 
 .item-resultado-busca {
-  display: flex;
-  gap: 12px;
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  cursor: pointer;
-  transition: background 0.2s;
-  align-items: center;
+  display: flex; gap: 12px; padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer; transition: background 0.2s; align-items: center;
 }
-
-.item-resultado-busca:last-child {
-  border-bottom: none;
-}
-
-.item-resultado-busca:hover {
-  background-color: rgba(139, 28, 49, 0.2); 
-}
+.item-resultado-busca:last-child { border-bottom: none; }
+.item-resultado-busca:hover { background-color: rgba(139, 28, 49, 0.2); }
 
 .item-resultado-busca img {
-  width: 40px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-  flex-shrink: 0;
+  width: 40px; height: 60px; object-fit: cover; border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5); flex-shrink: 0;
 }
 
-.info-resultado {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.titulo-res {
-  font-size: 13px;
-  font-weight: bold;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.autor-res {
-  font-size: 11.5px;
-  color: #aaa;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.info-resultado { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.titulo-res { font-size: 13px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.autor-res { font-size: 11.5px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* =========================================
    8. RESPONSIVIDADE MOBILE 
    ========================================= */
 @media (max-width: 768px) {
-  
   .estante-container {
     padding: 0 15px; 
     max-width: 100vw;
