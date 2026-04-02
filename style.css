@@ -11,6 +11,12 @@
   --glass-bg: rgba(26, 26, 30, 0.7); 
 }
 
+/* TRAVA DE SCROLL GLOBAL: Impede a página inteira de ir para o lado */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--cor-fundo); 
   background-image: radial-gradient(rgba(74, 14, 23, 0.15) 1px, transparent 1px);
@@ -79,7 +85,7 @@ input:focus { border-color: var(--cor-destaque); }
 /* =========================================
    4. ESTANTES E LIVROS
    ========================================= */
-.estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+.estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
 .prateleira {
   display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;
   min-height: 220px; padding-bottom: 5px; margin-bottom: 50px;
@@ -138,7 +144,7 @@ input:focus { border-color: var(--cor-destaque); }
    5. MODAIS E AVISOS FLUTUANTES
    ========================================= */
 .modal {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000;
   opacity: 1; transition: opacity 0.3s;
 }
@@ -204,11 +210,13 @@ input:focus { border-color: var(--cor-destaque); }
 }
 
 /* =========================================
-   7. RESPONSIVIDADE MOBILE (CARROSSEL LIVRE)
+   7. RESPONSIVIDADE MOBILE (TAMANHO 3 LIVROS)
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
     padding: 0; 
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   .prateleira {
@@ -221,37 +229,39 @@ input:focus { border-color: var(--cor-destaque); }
     padding-bottom: 25px !important; 
     padding-left: 15px !important; 
     padding-right: 15px !important; 
-    /* Removido o scroll-snap-type para deixar o deslizamento 100% livre! */
     -webkit-overflow-scrolling: touch;
+    width: 100vw;
+    box-sizing: border-box;
   }
 
   .prateleira::-webkit-scrollbar {
     display: none;
   }
   
+  /* Tamanho ajustado para caberem 3 livros confortavelmente (~105px) */
   .livro-wrapper {
-    flex: 0 0 84px !important; 
-    width: 84px !important;
-    /* Removido o scroll-snap-align */
+    flex: 0 0 105px !important; 
+    width: 105px !important;
   }
 
   .livro-capa, .capa-colecao {
-    width: 84px !important;
-    height: 125px !important;
+    width: 105px !important;
+    height: 150px !important;
   }
 
   .livro-titulo-container {
-    width: 84px !important;
+    width: 105px !important;
     padding: 4px 0;
   }
   
   .livro-titulo-texto {
-    font-size: 11.5px;
+    font-size: 12px;
   }
 
+  /* Ajustando o botão para a nova altura do livro */
   .btn-voltar-inline {
     width: 35px !important; 
-    height: 125px !important;
+    height: 150px !important;
     margin-bottom: 28px !important;
   }
 
@@ -261,13 +271,13 @@ input:focus { border-color: var(--cor-destaque); }
   }
   
   .btn-editar-lapiz svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
   
   .status-badge {
     font-size: 10px;
-    padding: 3px 6px;
+    padding: 4px 8px;
     top: 5px;
     left: -10px;
   }
