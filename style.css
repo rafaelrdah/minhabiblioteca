@@ -4,7 +4,7 @@
 :root {
   --cor-fundo: #0a0a0c; 
   --cor-vinho: #4a0e17; 
-  --cor-destaque: #8b1c31; /* Vinho Carmim elegante */
+  --cor-destaque: #8b1c31; 
   --cor-destaque-hover: #a1233b;
   --cor-painel: #1a1a1e; 
   --cor-texto: #f4f4f4;
@@ -111,15 +111,6 @@ input:focus { border-color: var(--cor-destaque); }
   90%, 100% { transform: translateX(calc(120px - 100%)); }
 }
 
-.cartao-voltar {
-  width: 125px; height: 180px; background-color: var(--cor-painel);
-  border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  color: #aaa; font-weight: bold; transition: all 0.2s;
-}
-.cartao-voltar:hover { background-color: var(--cor-vinho); color: #fff; border-color: transparent; }
-.cartao-voltar span { font-size: 30px; margin-bottom: 10px; color: var(--cor-destaque); }
-
 /* Lápis Minimalista Integrado na Capa da Coleção */
 .btn-editar-lapiz {
   position: absolute; top: 8px; left: 8px;
@@ -184,72 +175,95 @@ input:focus { border-color: var(--cor-destaque); }
 .aviso.oculto { opacity: 0; top: -20px; }
 
 /* =========================================
-   6. RESPONSIVIDADE MOBILE (CARROSSEL E 4 CAPAS)
+   6. BOTÃO VOLTAR DA COLEÇÃO (ESTILIZADO)
+   ========================================= */
+.container-voltar-colecao {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 50px;
+  width: 100%;
+}
+
+.btn-voltar-estiloso {
+  background: var(--cor-painel);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 12px 25px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 5px solid var(--cor-destaque); 
+  border-radius: 12px;
+  box-shadow: -3px 8px 15px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transform: rotate(-3deg);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-voltar-estiloso:hover {
+  transform: rotate(0deg) scale(1.05) translateY(-5px);
+  background: var(--cor-vinho);
+  border-left-color: #fff;
+  box-shadow: 0px 12px 20px rgba(0,0,0,0.8);
+}
+
+/* =========================================
+   7. RESPONSIVIDADE MOBILE (CARROSSEL FORÇADO)
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
-    padding: 0 10px; /* Reduz um pouco a margem lateral para ganhar espaço */
+    padding: 0 10px; 
   }
 
-  /* Transforma a prateleira em um carrossel horizontal */
+  /* Força a prateleira a ser um carrossel que não quebra linha */
   .prateleira {
-    flex-wrap: nowrap; /* Impede que os livros quebrem a linha dentro da mesma prateleira */
-    overflow-x: auto; /* Habilita o scroll horizontal (o carrossel) */
-    overflow-y: hidden;
-    gap: 12px; /* Espaço ajustado entre os livros */
-    padding-bottom: 15px; /* Espaço extra para não cortar as sombras ao puxar */
-    scroll-snap-type: x mandatory; /* Deixa o deslize mais suave, "puxando" o livro para o lugar */
+    display: flex !important;
+    flex-wrap: nowrap !important; 
+    overflow-x: auto !important; 
+    overflow-y: hidden !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding-bottom: 20px !important; 
+    scroll-snap-type: x mandatory; 
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Esconde a barra de rolagem visualmente, mantendo a função de deslizar com o dedo */
   .prateleira::-webkit-scrollbar {
     display: none;
   }
-  .prateleira {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* Garante que o livro não seja espremido e respeite o próprio tamanho no carrossel */
+  
+  /* Impede os livros de serem esmagados e força a largura de 75px */
   .livro-wrapper {
-    flex: 0 0 auto;
+    flex: 0 0 75px !important; 
+    width: 75px !important;
     scroll-snap-align: start;
   }
 
-  /* Redimensiona a capa para caberem exatos 4 na tela do celular (~360px de largura) */
-  .livro-capa {
-    width: 75px;
-    height: 110px;
+  .livro-capa, .capa-colecao {
+    width: 75px !important;
+    height: 110px !important;
   }
 
-  /* Redimensiona o cartão de voltar (dentro de coleções) para acompanhar o tamanho da capa */
-  .cartao-voltar {
-    width: 75px;
-    height: 110px;
-  }
-  .cartao-voltar span {
-    font-size: 20px;
-  }
-
-  /* Ajusta a largura e o tamanho da fonte do título do livro */
   .livro-titulo-container {
-    width: 75px;
+    width: 75px !important;
     padding: 2px 0;
   }
+  
   .livro-titulo-texto {
     font-size: 10px;
   }
 
-  /* Ajustes menores de posicionamento dos ícones e tags para a nova proporção */
   .btn-editar-lapiz {
     top: 4px;
     left: 4px;
   }
+  
   .btn-editar-lapiz svg {
     width: 14px;
     height: 14px;
   }
+  
   .status-badge {
     font-size: 9px;
     padding: 3px 6px;
@@ -257,6 +271,3 @@ input:focus { border-color: var(--cor-destaque); }
     left: -10px;
   }
 }
-
-
-   

@@ -120,7 +120,6 @@ function abrirModalEditarColecao(idCol) {
   document.getElementById('editNomeColecao').value = colecao.nome;
   document.getElementById('editImagemColecao').value = colecao.imagem;
   
-  // Lista 1: Livros já dentro (Para remover)
   const livrosNaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === idCol);
   const listaDentroHtml = document.getElementById('lista-livros-na-colecao');
   listaDentroHtml.innerHTML = '';
@@ -136,7 +135,6 @@ function abrirModalEditarColecao(idCol) {
     });
   }
 
-  // Lista 2: Livros soltos (Para adicionar)
   const livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
   const listaSoltosHtml = document.getElementById('lista-livros-soltos-editar');
   listaSoltosHtml.innerHTML = '';
@@ -156,7 +154,7 @@ function removerLivroDaColecaoPelaEdicao(idLivro) {
   if (livro) {
     livro.colecaoPertencente = null;
     salvarDados();
-    abrirModalEditarColecao(colecaoEditandoId); // Atualiza os campos na hora
+    abrirModalEditarColecao(colecaoEditandoId); 
     renderizarEstante(); 
     mostrarAviso("Livro removido da coleção.");
   }
@@ -251,13 +249,15 @@ function fatiarArray(array, tamanho) {
   return fatiado;
 }
 
+function fecharColecaoAtual() { visaoAtualColecaoId = null; renderizarEstante(); }
+function abrirColecao(idColecao) { visaoAtualColecaoId = idColecao; renderizarEstante(); }
+
 function renderizarEstante() {
   const container = document.getElementById('container-estantes');
   container.innerHTML = ''; 
   let itensParaExibir = [];
 
   if (visaoAtualColecaoId) {
-    itensParaExibir.push({ tipo: 'botao_voltar' });
     const livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === visaoAtualColecaoId);
     livrosDaColecao.forEach(l => itensParaExibir.push({ tipo: 'livro', dados: l }));
   } else {
@@ -271,39 +271,37 @@ function renderizarEstante() {
   if (gruposDePrateleira.length === 0) {
     const divVazia = document.createElement('div');
     divVazia.className = 'prateleira';
+    if (visaoAtualColecaoId) {
+      divVazia.innerHTML = '<p style="color: #888; width: 100%; text-align: center; margin-bottom: 20px;">Esta coleção está vazia.</p>';
+    }
     container.appendChild(divVazia);
-    return;
+  } else {
+    gruposDePrateleira.forEach(grupo => {
+      const prateleiraHtml = document.createElement('div');
+      prateleiraHtml.className = 'prateleira';
+
+      grupo.forEach(item => {
+        if (item.tipo === 'colecao') prateleiraHtml.appendChild(gerarElementoLivro(item.dados, true));
+        else prateleiraHtml.appendChild(gerarElementoLivro(item.dados, false));
+      });
+
+      container.appendChild(prateleiraHtml);
+    });
   }
 
-  gruposDePrateleira.forEach(grupo => {
-    const prateleiraHtml = document.createElement('div');
-    prateleiraHtml.className = 'prateleira';
-
-    grupo.forEach(item => {
-      if (item.tipo === 'botao_voltar') prateleiraHtml.appendChild(gerarBotaoVoltar());
-      else if (item.tipo === 'colecao') prateleiraHtml.appendChild(gerarElementoLivro(item.dados, true));
-      else prateleiraHtml.appendChild(gerarElementoLivro(item.dados, false));
-    });
-
-    container.appendChild(prateleiraHtml);
-  });
+  // Adiciona o botão voltar estiloso embaixo de tudo se estiver dentro de uma coleção
+  if (visaoAtualColecaoId) {
+    const btnVoltarContainer = document.createElement('div');
+    btnVoltarContainer.className = 'container-voltar-colecao';
+    btnVoltarContainer.innerHTML = `<button class="btn-voltar-estiloso" onclick="fecharColecaoAtual()">↩ Voltar para a Biblioteca</button>`;
+    container.appendChild(btnVoltarContainer);
+  }
 }
-
-function fecharColecaoAtual() { visaoAtualColecaoId = null; renderizarEstante(); }
-function abrirColecao(idColecao) { visaoAtualColecaoId = idColecao; renderizarEstante(); }
 
 function formatarStatus(status) {
   if (status === 'lido') return 'Lido';
   if (status === 'lendo') return 'Lendo';
   return 'Não Lido';
-}
-
-function gerarBotaoVoltar() {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'livro-wrapper';
-  wrapper.onclick = fecharColecaoAtual;
-  wrapper.innerHTML = `<div class="cartao-voltar"><span>↩</span> Voltar</div><div class="livro-titulo-container"><span class="livro-titulo-texto">Fechar</span></div>`;
-  return wrapper;
 }
 
 function gerarElementoLivro(livro, isColecao = false) {
