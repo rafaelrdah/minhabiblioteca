@@ -11,7 +11,6 @@
   --glass-bg: rgba(26, 26, 30, 0.7); 
 }
 
-/* TRAVA DE SCROLL GLOBAL: Impede a página inteira de ir para o lado */
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
@@ -61,7 +60,6 @@ input, select {
 }
 input:focus { border-color: var(--cor-destaque); }
 
-/* Novo: Grupo para alinhar o input de texto com o botão de pasta */
 .input-com-icone {
   display: flex;
   gap: 10px;
@@ -69,7 +67,7 @@ input:focus { border-color: var(--cor-destaque); }
   margin-bottom: 10px;
 }
 .input-com-icone input[type="text"] {
-  margin-bottom: 0; /* Remove a margem para alinhar com o botão */
+  margin-bottom: 0; 
   flex: 1;
 }
 .btn-icone {
@@ -112,9 +110,74 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   4. ESTANTES E LIVROS
+   4. ACORDEÃO DE COLEÇÕES
+   ========================================= */
+.secao-colecoes {
+  margin-bottom: 20px;
+}
+
+.colecao-accordion-box {
+  margin-bottom: 10px;
+}
+
+.colecao-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-colecao-toggle {
+  flex: 1;
+  background: linear-gradient(90deg, #1c0508, var(--cor-vinho)); 
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-left: 4px solid var(--cor-destaque);
+  padding: 12px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: all 0.2s;
+}
+
+.btn-colecao-toggle:hover {
+  filter: brightness(1.2);
+  transform: translateX(4px);
+}
+
+.btn-colecao-editar {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #aaa;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  transition: all 0.2s;
+}
+
+.btn-colecao-editar:hover {
+  background: rgba(139, 28, 49, 0.4);
+  color: #fff;
+  border-color: var(--cor-destaque);
+}
+
+.colecao-estante-conteudo {
+  margin-top: 15px;
+  animation: deslizarBaixo 0.3s ease-out forwards;
+}
+
+@keyframes deslizarBaixo {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   5. ESTANTES E LIVROS
    ========================================= */
 .estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
+
 .prateleira {
   display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;
   min-height: 220px; padding-bottom: 5px; margin-bottom: 50px;
@@ -133,7 +196,6 @@ input:focus { border-color: var(--cor-destaque); }
   width: 125px; height: 180px; object-fit: cover; 
   border-radius: 6px 12px 12px 6px; box-shadow: -5px 5px 15px rgba(0,0,0,0.8); 
 }
-.capa-colecao { border: 2px solid rgba(255,255,255,0.8); }
 
 .livro-titulo-container {
   width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
@@ -145,18 +207,6 @@ input:focus { border-color: var(--cor-destaque); }
   0%, 10% { transform: translateX(5%); }
   90%, 100% { transform: translateX(calc(120px - 100%)); }
 }
-
-/* Lápis Minimalista Integrado na Capa da Coleção */
-.btn-editar-lapiz {
-  position: absolute; top: 8px; left: 8px;
-  background-color: transparent; color: rgba(255, 255, 255, 0.9); 
-  border: none; box-shadow: none; backdrop-filter: none; padding: 0;
-  width: auto; height: auto; display: flex; justify-content: center; align-items: center;
-  cursor: pointer; z-index: 20; transition: all 0.2s;
-  filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.95));
-}
-.btn-editar-lapiz:hover { transform: scale(1.2); color: var(--cor-destaque); }
-.btn-editar-lapiz svg { width: 18px; height: 18px; }
 
 /* Tag de Status Diagonal */
 .status-badge {
@@ -170,7 +220,7 @@ input:focus { border-color: var(--cor-destaque); }
 .status-nao-lido { background-color: #555; } 
 
 /* =========================================
-   5. MODAIS E AVISOS FLUTUANTES
+   6. MODAIS E AVISOS FLUTUANTES
    ========================================= */
 .modal {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -208,35 +258,6 @@ input:focus { border-color: var(--cor-destaque); }
   transition: opacity 0.3s, top 0.3s;
 }
 .aviso.oculto { opacity: 0; top: -20px; }
-
-/* =========================================
-   6. BOTÃO VOLTAR INLINE (COMPACTO)
-   ========================================= */
-.btn-voltar-inline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 45px; 
-  height: 180px; 
-  background-color: rgba(255, 255, 255, 0.03); 
-  border-radius: 8px;
-  cursor: pointer;
-  flex-shrink: 0; 
-  transition: background-color 0.2s, transform 0.2s;
-  margin-bottom: 30px; 
-}
-
-.btn-voltar-inline:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(-4px);
-}
-
-.btn-voltar-inline svg {
-  width: 26px;
-  height: 26px;
-  color: var(--cor-destaque);
-  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.8));
-}
 
 /* =========================================
    7. RESULTADOS DE BUSCA WEB NO MODAL
@@ -311,7 +332,7 @@ input:focus { border-color: var(--cor-destaque); }
 }
 
 /* =========================================
-   8. RESPONSIVIDADE MOBILE (TAMANHO 3 LIVROS E SCROLL LIVRE)
+   8. RESPONSIVIDADE MOBILE 
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
@@ -344,7 +365,7 @@ input:focus { border-color: var(--cor-destaque); }
     width: 105px !important;
   }
 
-  .livro-capa, .capa-colecao {
+  .livro-capa {
     width: 105px !important;
     height: 150px !important;
   }
@@ -356,22 +377,6 @@ input:focus { border-color: var(--cor-destaque); }
   
   .livro-titulo-texto {
     font-size: 12px;
-  }
-
-  .btn-voltar-inline {
-    width: 35px !important; 
-    height: 150px !important;
-    margin-bottom: 28px !important;
-  }
-
-  .btn-editar-lapiz {
-    top: 4px;
-    left: 4px;
-  }
-  
-  .btn-editar-lapiz svg {
-    width: 16px;
-    height: 16px;
   }
   
   .status-badge {
