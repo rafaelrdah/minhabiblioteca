@@ -104,7 +104,7 @@ input:focus { border-color: var(--cor-destaque); }
   width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
   background-color: rgba(0,0,0,0.6); padding: 4px 0; text-align: center;
 }
-.livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: bold; color: #fff; }
+.livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: bold; color: #fff; }
 
 @keyframes vaiEVolta {
   0%, 10% { transform: translateX(5%); }
@@ -175,48 +175,42 @@ input:focus { border-color: var(--cor-destaque); }
 .aviso.oculto { opacity: 0; top: -20px; }
 
 /* =========================================
-   6. BOTÃO VOLTAR DA COLEÇÃO (ESTILIZADO)
+   6. BOTÃO VOLTAR INLINE (COMPACTO)
    ========================================= */
-.container-voltar-colecao {
+.btn-voltar-inline {
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 10px;
-  margin-bottom: 50px;
-  width: 100%;
-}
-
-.btn-voltar-estiloso {
-  background: var(--cor-painel);
-  color: #fff;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: bold;
-  padding: 12px 25px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-left: 5px solid var(--cor-destaque); 
-  border-radius: 12px;
-  box-shadow: -3px 8px 15px rgba(0,0,0,0.6);
+  width: 45px; /* Bem mais fino que um livro */
+  height: 180px; /* Mesma altura que os livros do PC */
+  background-color: rgba(255, 255, 255, 0.03); /* Fundo com baixíssima opacidade */
+  border-radius: 8px;
   cursor: pointer;
-  transform: rotate(-3deg);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  flex-shrink: 0; /* Para não ser espremido pelo flexbox */
+  transition: background-color 0.2s, transform 0.2s;
+  margin-bottom: 30px; /* Para alinhar certinho com as capas */
 }
 
-.btn-voltar-estiloso:hover {
-  transform: rotate(0deg) scale(1.05) translateY(-5px);
-  background: var(--cor-vinho);
-  border-left-color: #fff;
-  box-shadow: 0px 12px 20px rgba(0,0,0,0.8);
+.btn-voltar-inline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(-4px);
+}
+
+.btn-voltar-inline svg {
+  width: 26px;
+  height: 26px;
+  color: var(--cor-destaque);
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.8));
 }
 
 /* =========================================
-   7. RESPONSIVIDADE MOBILE (CARROSSEL FORÇADO)
+   7. RESPONSIVIDADE MOBILE (CARROSSEL E TAMANHOS)
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
-    padding: 0 10px; 
+    padding: 0; /* Remove o padding do container para dar espaço aos livros */
   }
 
-  /* Força a prateleira a ser um carrossel que não quebra linha */
   .prateleira {
     display: flex !important;
     flex-wrap: nowrap !important; 
@@ -224,7 +218,9 @@ input:focus { border-color: var(--cor-destaque); }
     overflow-y: hidden !important;
     justify-content: flex-start !important;
     gap: 12px !important;
-    padding-bottom: 20px !important; 
+    padding-bottom: 25px !important; /* Espaço para animação não cortar embaixo */
+    padding-left: 15px !important; /* Evita que o primeiro item seja cortado à esquerda */
+    padding-right: 15px !important; 
     scroll-snap-type: x mandatory; 
     -webkit-overflow-scrolling: touch;
   }
@@ -233,25 +229,34 @@ input:focus { border-color: var(--cor-destaque); }
     display: none;
   }
   
-  /* Impede os livros de serem esmagados e força a largura de 75px */
+  /* Tamanho exato para caberem os 4 itens confortavelmente na tela */
   .livro-wrapper {
-    flex: 0 0 75px !important; 
-    width: 75px !important;
+    flex: 0 0 84px !important; 
+    width: 84px !important;
     scroll-snap-align: start;
   }
 
+  /* Capas maiores no celular */
   .livro-capa, .capa-colecao {
-    width: 75px !important;
-    height: 110px !important;
+    width: 84px !important;
+    height: 125px !important;
   }
 
   .livro-titulo-container {
-    width: 75px !important;
-    padding: 2px 0;
+    width: 84px !important;
+    padding: 4px 0;
   }
   
+  /* Textos maiores no celular */
   .livro-titulo-texto {
-    font-size: 10px;
+    font-size: 11.5px;
+  }
+
+  /* Ajuste do botão voltar no celular para acompanhar a altura da capa menor */
+  .btn-voltar-inline {
+    width: 35px !important; 
+    height: 125px !important;
+    margin-bottom: 28px !important;
   }
 
   .btn-editar-lapiz {
@@ -265,7 +270,7 @@ input:focus { border-color: var(--cor-destaque); }
   }
   
   .status-badge {
-    font-size: 9px;
+    font-size: 10px;
     padding: 3px 6px;
     top: 5px;
     left: -10px;

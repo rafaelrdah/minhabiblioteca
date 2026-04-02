@@ -252,12 +252,29 @@ function fatiarArray(array, tamanho) {
 function fecharColecaoAtual() { visaoAtualColecaoId = null; renderizarEstante(); }
 function abrirColecao(idColecao) { visaoAtualColecaoId = idColecao; renderizarEstante(); }
 
+function gerarBotaoVoltarInline() {
+  const btn = document.createElement('div');
+  btn.className = 'btn-voltar-inline';
+  btn.onclick = fecharColecaoAtual;
+  // SVG de uma seta simples
+  btn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+  `;
+  return btn;
+}
+
 function renderizarEstante() {
   const container = document.getElementById('container-estantes');
   container.innerHTML = ''; 
   let itensParaExibir = [];
 
   if (visaoAtualColecaoId) {
+    // Adiciona o botão voltar compacto como o PRIMEIRO item da prateleira
+    itensParaExibir.push({ tipo: 'botao_voltar' });
+    
     const livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === visaoAtualColecaoId);
     livrosDaColecao.forEach(l => itensParaExibir.push({ tipo: 'livro', dados: l }));
   } else {
@@ -271,9 +288,6 @@ function renderizarEstante() {
   if (gruposDePrateleira.length === 0) {
     const divVazia = document.createElement('div');
     divVazia.className = 'prateleira';
-    if (visaoAtualColecaoId) {
-      divVazia.innerHTML = '<p style="color: #888; width: 100%; text-align: center; margin-bottom: 20px;">Esta coleção está vazia.</p>';
-    }
     container.appendChild(divVazia);
   } else {
     gruposDePrateleira.forEach(grupo => {
@@ -281,20 +295,13 @@ function renderizarEstante() {
       prateleiraHtml.className = 'prateleira';
 
       grupo.forEach(item => {
-        if (item.tipo === 'colecao') prateleiraHtml.appendChild(gerarElementoLivro(item.dados, true));
+        if (item.tipo === 'botao_voltar') prateleiraHtml.appendChild(gerarBotaoVoltarInline());
+        else if (item.tipo === 'colecao') prateleiraHtml.appendChild(gerarElementoLivro(item.dados, true));
         else prateleiraHtml.appendChild(gerarElementoLivro(item.dados, false));
       });
 
       container.appendChild(prateleiraHtml);
     });
-  }
-
-  // Adiciona o botão voltar estiloso embaixo de tudo se estiver dentro de uma coleção
-  if (visaoAtualColecaoId) {
-    const btnVoltarContainer = document.createElement('div');
-    btnVoltarContainer.className = 'container-voltar-colecao';
-    btnVoltarContainer.innerHTML = `<button class="btn-voltar-estiloso" onclick="fecharColecaoAtual()">↩ Voltar para a Biblioteca</button>`;
-    container.appendChild(btnVoltarContainer);
   }
 }
 
