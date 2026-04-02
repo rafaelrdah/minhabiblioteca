@@ -7,7 +7,7 @@ let colecoesExpandidas = [];
 const LIVROS_POR_PRATELEIRA = 6;
 
 // ==========================================
-// SALVAMENTO AUTOMÁTICO E PROCESSAMENTO DE IMAGEM
+// SALVAMENTO, BACKUP E PROCESSAMENTO DE IMAGEM
 // ==========================================
 function carregarDados() {
   const bibliotecaSalva = localStorage.getItem('minhaBiblioteca');
@@ -19,6 +19,59 @@ function carregarDados() {
 function salvarDados() {
   localStorage.setItem('minhaBiblioteca', JSON.stringify(minhaBiblioteca));
   localStorage.setItem('minhasColecoes', JSON.stringify(minhasColecoes));
+}
+
+// NOVO: Exportar para o celular (.json)
+function exportarDados() {
+  const dados = {
+    biblioteca: minhaBiblioteca,
+    colecoes: minhasColecoes
+  };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  
+  // Gera um nome com a data atual (Ex: biblioteca_backup_2026-4-2.json)
+  const dataHoje = new Date().toISOString().slice(0, 10);
+  downloadAnchorNode.setAttribute("download", `biblioteca_backup_${dataHoje}.json`);
+  
+  document.body.appendChild(downloadAnchorNode); 
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+  
+  mostrarAviso("Backup exportado para o seu celular!");
+  fecharModal('modal-backup');
+}
+
+// NOVO: Importar do celular
+function acionarImportacao() {
+  document.getElementById('fileImportar').click();
+}
+
+function importarDados(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (dados.biblioteca && dados.colecoes) {
+        minhaBiblioteca = dados.biblioteca;
+        minhasColecoes = dados.colecoes;
+        salvarDados();
+        renderizarEstante();
+        mostrarAviso("Backup restaurado com sucesso!");
+        fecharModal('modal-backup');
+      } else {
+        mostrarAviso("Arquivo de backup inválido.");
+      }
+    } catch(err) {
+      mostrarAviso("Erro ao ler o arquivo.");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Limpa o input
 }
 
 function processarUploadImagem(event, inputIdTarget, imgPreviewId = null) {
@@ -84,8 +137,12 @@ function fecharModal(idModal) {
   if (idModal === 'modal-editar-colecao') colecaoEditandoId = null;
 }
 
+function abrirModalBackup() {
+  document.getElementById('modal-backup').classList.remove('oculto');
+}
+
 // ==========================================
-// BUSCA NA WEB (RÁPIDA)
+// BUSCA NA WEB
 // ==========================================
 async function buscarLivroWeb() {
   const inputBusca = document.getElementById('buscaWebInput');
@@ -370,7 +427,7 @@ function salvarStatusLivro() {
 }
 
 // ==========================================
-// RENDERIZAÇÃO DA ESTANTE (SISTEMA SANFONA)
+// RENDERIZAÇÃO E ORDENAÇÃO
 // ==========================================
 function fatiarArray(array, tamanho) {
   const fatiado = [];
@@ -387,6 +444,17 @@ function toggleColecao(idColecao) {
   renderizarEstante();
 }
 
+// NOVO: Função para ordenar baseado na prioridade (Lendo -> Não lido -> Lido)
+function ordenarLivrosPorStatus(livros) {
+  const pesos = {
+    'lendo': 1,
+    'nao-lido': 2,
+    'lido': 3
+  };
+  
+  return livros.sort((a, b) => pesos[a.status] - pesos[b.status]);
+}
+
 function renderizarEstante() {
   const container = document.getElementById('container-estantes');
   container.innerHTML = ''; 
@@ -399,10 +467,8 @@ function renderizarEstante() {
     
     minhasColecoes.forEach(colecao => {
       const isExpandida = colecoesExpandidas.includes(colecao.id);
-      
       const colBox = document.createElement('div');
       colBox.className = 'colecao-accordion-box';
-
       const colHeader = document.createElement('div');
       colHeader.className = 'colecao-header';
       
@@ -411,7 +477,6 @@ function renderizarEstante() {
       btnToggle.onclick = () => toggleColecao(colecao.id);
       
       const rotSeta = isExpandida ? '180deg' : '0deg';
-      // MUDANÇA: Emoji alterado para 📚
       btnToggle.innerHTML = `
         <span style="flex:1; text-align:left; font-size:14px; font-weight:bold;">📚 ${colecao.nome}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${rotSeta}); transition: transform 0.3s ease;">
@@ -432,11 +497,14 @@ function renderizarEstante() {
         const estanteInterna = document.createElement('div');
         estanteInterna.className = 'colecao-estante-conteudo';
 
-        const livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === colecao.id);
+        let livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === colecao.id);
         
         if (livrosDaColecao.length === 0) {
           estanteInterna.innerHTML = '<div class="prateleira"><p style="color: #666; width: 100%; text-align: center; font-size: 13px; margin-bottom: 20px;">Esta coleção está vazia.</p></div>';
         } else {
+          // NOVO: Ordena os livros da coleção antes de fatiar
+          livrosDaColecao = ordenarLivrosPorStatus(livrosDaColecao);
+          
           const grupos = fatiarArray(livrosDaColecao, LIVROS_POR_PRATELEIRA);
           grupos.forEach(grupo => {
             const prateleiraHtml = document.createElement('div');
@@ -449,15 +517,13 @@ function renderizarEstante() {
         }
         colBox.appendChild(estanteInterna);
       }
-
       secaoColecoes.appendChild(colBox);
     });
-
     container.appendChild(secaoColecoes);
   }
 
   // 2. ÁREA DOS LIVROS SOLTOS
-  const livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
+  let livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
   
   if (livrosSoltos.length > 0 || minhaBiblioteca.length === 0) {
     const secaoSoltos = document.createElement('div');
@@ -466,6 +532,9 @@ function renderizarEstante() {
     if (minhasColecoes.length > 0) {
       secaoSoltos.innerHTML = '<h3 style="color: #aaa; font-size: 14px; margin-top: 20px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">Livros Soltos</h3>';
     }
+
+    // NOVO: Ordena os livros soltos da estante principal antes de exibir
+    livrosSoltos = ordenarLivrosPorStatus(livrosSoltos);
 
     const gruposSoltos = fatiarArray(livrosSoltos, LIVROS_POR_PRATELEIRA);
     

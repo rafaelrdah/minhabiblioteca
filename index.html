@@ -6,7 +6,7 @@
   <title>Minha Biblioteca</title>
   <link rel="manifest" href="manifest.json">
   
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -15,6 +15,11 @@
   <header>
     <div class="header-blur-bg"></div>
     <div class="header-conteudo">
+      
+      <button class="btn-opcoes-topo" onclick="abrirModalBackup()" title="Backup e Opções">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+      </button>
+
       <h1>Minha Biblioteca</h1>
       
       <div class="botoes-topo">
@@ -25,6 +30,22 @@
   </header>
 
   <main class="estante-container" id="container-estantes"></main>
+
+  <div id="modal-backup" class="modal oculto">
+    <div class="modal-conteudo modal-glass modal-pequeno">
+      <h2>Opções da Biblioteca</h2>
+      <p style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 20px;">Salve seus livros para não perder ou carregue um backup antigo.</p>
+      
+      <button class="btn-primario" style="width: 100%; margin-bottom: 10px;" onclick="exportarDados()">⬇️ Salvar Backup no Celular</button>
+      <button class="btn-secundario" style="width: 100%; margin-bottom: 20px;" onclick="acionarImportacao()">⬆️ Carregar um Backup</button>
+      
+      <input type="file" id="fileImportar" accept=".json" style="display: none;" onchange="importarDados(event)">
+
+      <div class="modal-botoes">
+        <button class="btn-perigo" style="width: 100%; padding: 12px;" onclick="fecharModal('modal-backup')">Fechar</button>
+      </div>
+    </div>
+  </div>
 
   <div id="modal-add-livro" class="modal oculto">
     <div class="modal-conteudo modal-glass modal-pequeno">
@@ -137,6 +158,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=11"></script>
+  <script src="script.js?v=12"></script>
 </body>
 </html>
