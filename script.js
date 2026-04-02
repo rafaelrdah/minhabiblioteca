@@ -38,7 +38,7 @@ function fecharModal(idModal) {
 }
 
 // ==========================================
-// BUSCA NA WEB (AGREGADOR: GOOGLE + OPEN LIBRARY)
+// BUSCA NA WEB (MEGAZORD: 6 APIs JUNTAS)
 // ==========================================
 async function buscarLivroWeb() {
   const inputBusca = document.getElementById('buscaWebInput');
@@ -50,12 +50,17 @@ async function buscarLivroWeb() {
     return;
   }
 
-  container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando em várias bibliotecas...</p>';
+  container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando em todos os acervos disponíveis...</p>';
   container.classList.remove('oculto');
 
   let resultadosMisturados = [];
+  
+  // Limpa o texto para verificar se é um código ISBN válido
+  const cleanQuery = query.replace(/[\s-]/g, '');
+  const isISBN = /^(?:\d{9}[\dX]|\d{13})$/i.test(cleanQuery);
 
-  const promessaGoogle = fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&langRestrict=pt&maxResults=10`)
+  // 1. Google Books (PT-BR Focus)
+  const promessaGoogle = fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&langRestrict=pt&maxResults=5`)
     .then(res => res.json())
     .then(data => {
       if (data.items) {
@@ -63,53 +68,101 @@ async function buscarLivroWeb() {
           const info = item.volumeInfo;
           let imagem = info.imageLinks ? info.imageLinks.thumbnail : '';
           if (imagem) imagem = imagem.replace('http:', 'https:'); 
-          return {
-            titulo: info.title || 'Sem título',
-            autor: info.authors ? info.authors.join(', ') : 'Desconhecido',
-            imagem: imagem,
-            origem: 'Google'
-          };
+          return { titulo: info.title || 'Sem título', autor: info.authors ? info.authors.join(', ') : 'Desconhecido', imagem: imagem, origem: 'Google' };
         });
       }
       return [];
-    });
+    }).catch(() => []);
 
-  const promessaOpenLib = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`)
+  // 2. Open Library
+  const promessaOpenLib = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`)
     .then(res => res.json())
     .then(data => {
       if (data.docs) {
         return data.docs.map(doc => {
           let imagem = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : '';
-          return {
-            titulo: doc.title || 'Sem título',
-            autor: doc.author_name ? doc.author_name.join(', ') : 'Desconhecido',
-            imagem: imagem,
-            origem: 'Open Lib'
-          };
+          return { titulo: doc.title || 'Sem título', autor: doc.author_name ? doc.author_name.join(', ') : 'Desconhecido', imagem: imagem, origem: 'OpenLib' };
         });
       }
       return [];
-    });
+    }).catch(() => []);
+
+  // 3. BrasilAPI (Reforço PT-BR EXCLUSIVO para ISBN)
+  let promessaBrasilAPI = Promise.resolve([]);
+  if (isISBN) {
+    promessaBrasilAPI = fetch(`https://brasilapi.com.br/api/isbn/v1/${cleanQuery}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.title) {
+          return [{ titulo: data.title, autor: data.authors ? data.authors.join(', ') : 'Desconhecido', imagem: data.cover_url || '', origem: 'BrasilAPI' }];
+        }
+        return [];
+      }).catch(() => []); 
+  }
+
+  // 4. Gutendex (Project Gutenberg API)
+  const promessaGutendex = fetch(`https://gutendex.com/books?search=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.results) {
+        return data.results.slice(0, 5).map(book => ({
+          titulo: book.title, 
+          autor: book.authors.map(a => a.name).join(', ') || 'Desconhecido', 
+          imagem: book.formats['image/jpeg'] || '', 
+          origem: 'Gutendex'
+        }));
+      }
+      return [];
+    }).catch(() => []);
+
+  // 5. Internet Archive
+  const promessaArchive = fetch(`https://archive.org/advancedsearch.php?q=title:(${encodeURIComponent(query)})&fl[]=title,creator,identifier&output=json&rows=5`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.response && data.response.docs) {
+        return data.response.docs.map(doc => ({
+          titulo: doc.title || 'Sem título',
+          autor: doc.creator ? (Array.isArray(doc.creator) ? doc.creator.join(', ') : doc.creator) : 'Desconhecido',
+          imagem: doc.identifier ? `https://archive.org/services/img/${doc.identifier}` : '',
+          origem: 'Archive'
+        }));
+      }
+      return [];
+    }).catch(() => []);
+
+  // 6. WorldCat (Nota: Costuma falhar no Client-Side por CORS sem chave de API, mas se passar, vai pra lista)
+  const promessaWorldCat = fetch(`https://www.worldcat.org/webservices/catalog/search/opensearch?q=${encodeURIComponent(query)}&format=json`)
+    .then(res => res.json())
+    .then(data => []) // Ajustar o mapeamento se o endpoint um dia for aberto
+    .catch(() => []); // O catch abafa o erro vermelho do console e deixa a página viva
 
   try {
-    const respostas = await Promise.allSettled([promessaGoogle, promessaOpenLib]);
+    // Taca tudo junto!
+    const respostas = await Promise.allSettled([
+      promessaGoogle, promessaOpenLib, promessaBrasilAPI, promessaGutendex, promessaArchive, promessaWorldCat
+    ]);
 
-    if (respostas[0].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[0].value);
-    if (respostas[1].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[1].value);
+    // Extrai quem teve sucesso e concatena na lista final
+    respostas.forEach(res => {
+      if (res.status === 'fulfilled' && res.value.length > 0) {
+        resultadosMisturados = resultadosMisturados.concat(res.value);
+      }
+    });
 
     if (resultadosMisturados.length === 0) {
-      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado nas bases.</p>';
+      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado nas 6 bases.</p>';
       return;
     }
 
     container.innerHTML = ''; 
 
+    // Renderiza cada item encontrado
     resultadosMisturados.forEach(livro => {
       const div = document.createElement('div');
       div.className = 'item-resultado-busca';
       
       div.innerHTML = `
-        <img src="${livro.imagem || 'https://via.placeholder.com/40x60/2a080d/f0e6d2?text=Sem+Capa'}" alt="Capa">
+        <img src="${livro.imagem || 'https://via.placeholder.com/40x60/2a080d/f0e6d2?text=Sem+Capa'}" alt="Capa" onerror="this.src='https://via.placeholder.com/40x60/2a080d/f0e6d2?text=Sem+Capa'">
         <div class="info-resultado">
           <div class="titulo-res">
             ${livro.titulo} 
@@ -133,7 +186,7 @@ async function buscarLivroWeb() {
     });
 
   } catch (error) {
-    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro ao buscar na internet.</p>';
+    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro interno ao processar a busca.</p>';
   }
 }
 
