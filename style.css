@@ -1,10 +1,10 @@
 /* =========================================
-   CORES E FUNDO
+   1. CORES E FUNDO
    ========================================= */
 :root {
   --cor-fundo: #0a0a0c; 
   --cor-vinho: #4a0e17; 
-  --cor-destaque: #8b1c31; 
+  --cor-destaque: #8b1c31; /* Vinho Carmim elegante */
   --cor-destaque-hover: #a1233b;
   --cor-painel: #1a1a1e; 
   --cor-texto: #f4f4f4;
@@ -20,6 +20,9 @@ body {
   margin: 0; padding: 0;
 }
 
+/* =========================================
+   2. CABEÇALHO (BLUR) E BOTÕES DO TOPO
+   ========================================= */
 header {
   position: relative; padding: 40px 20px 30px 20px; text-align: center;
   border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
@@ -33,8 +36,16 @@ header {
 .header-conteudo { position: relative; z-index: 1; }
 header h1 { margin-top: 0; letter-spacing: 1px; color: #fff; font-weight: 800; }
 
+.botoes-topo {
+  display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;
+}
+.btn-pequeno {
+  width: auto !important; padding: 8px 16px !important; font-size: 13px !important;
+  border-radius: 8px !important; box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
+}
+
 /* =========================================
-   INPUTS E BOTÕES 
+   3. INPUTS E BOTÕES GERAIS
    ========================================= */
 input, select {
   padding: 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
@@ -59,17 +70,14 @@ input:focus { border-color: var(--cor-destaque); }
 }
 .btn-secundario:hover { background-color: #2a2a2e; }
 
-/* Agrupamento dos botões no topo */
-.botoes-topo {
-  display: flex; justify-content: center; gap: 15px; margin-top: 10px;
+.btn-perigo {
+  background-color: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3);
+  border-radius: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-sizing: border-box;
 }
-.btn-pequeno {
-  width: auto !important; padding: 8px 16px !important; font-size: 13px !important;
-  border-radius: 8px !important; box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
-}
+.btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   ESTANTES E LIVROS
+   4. ESTANTES E LIVROS
    ========================================= */
 .estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
 .prateleira {
@@ -112,7 +120,7 @@ input:focus { border-color: var(--cor-destaque); }
 .cartao-voltar:hover { background-color: var(--cor-vinho); color: #fff; border-color: transparent; }
 .cartao-voltar span { font-size: 30px; margin-bottom: 10px; color: var(--cor-destaque); }
 
-/* Lápis Minimalista Integrado na Capa */
+/* Lápis Minimalista Integrado na Capa da Coleção */
 .btn-editar-lapiz {
   position: absolute; top: 8px; left: 8px;
   background-color: transparent; color: rgba(255, 255, 255, 0.9); 
@@ -124,7 +132,7 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-editar-lapiz:hover { transform: scale(1.2); color: var(--cor-destaque); }
 .btn-editar-lapiz svg { width: 18px; height: 18px; }
 
-/* Tag de Status */
+/* Tag de Status Diagonal */
 .status-badge {
   position: absolute; top: 15px; left: -15px;
   padding: 5px 10px; font-size: 11px; font-weight: bold; color: white;
@@ -136,7 +144,7 @@ input:focus { border-color: var(--cor-destaque); }
 .status-nao-lido { background-color: #555; } 
 
 /* =========================================
-   MODAIS E GLASSMORPHISM
+   5. MODAIS E AVISOS FLUTUANTES
    ========================================= */
 .modal {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -154,9 +162,9 @@ input:focus { border-color: var(--cor-destaque); }
 .modal-glass h2 { color: #fff; margin-top: 0; margin-bottom: 20px; text-align: center; }
 
 .selecao-livros-glass { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-#lista-livros-soltos, #lista-livros-soltos-editar { max-height: 120px; overflow-y: auto; }
-#lista-livros-soltos::-webkit-scrollbar, #lista-livros-soltos-editar::-webkit-scrollbar { width: 6px; }
-#lista-livros-soltos::-webkit-scrollbar-thumb, #lista-livros-soltos-editar::-webkit-scrollbar-thumb { background: var(--cor-destaque); border-radius: 3px; }
+#lista-livros-soltos, #lista-livros-soltos-editar, #lista-livros-na-colecao { max-height: 120px; overflow-y: auto; }
+#lista-livros-soltos::-webkit-scrollbar, #lista-livros-soltos-editar::-webkit-scrollbar, #lista-livros-na-colecao::-webkit-scrollbar { width: 6px; }
+#lista-livros-soltos::-webkit-scrollbar-thumb, #lista-livros-soltos-editar::-webkit-scrollbar-thumb, #lista-livros-na-colecao::-webkit-scrollbar-thumb { background: var(--cor-destaque); border-radius: 3px; }
 
 .checkbox-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 14px;}
 .checkbox-item input { width: auto; margin: 0; accent-color: var(--cor-destaque); }
@@ -174,3 +182,4 @@ input:focus { border-color: var(--cor-destaque); }
   transition: opacity 0.3s, top 0.3s;
 }
 .aviso.oculto { opacity: 0; top: -20px; }
+   
