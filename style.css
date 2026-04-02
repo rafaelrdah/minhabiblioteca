@@ -210,7 +210,79 @@ input:focus { border-color: var(--cor-destaque); }
 }
 
 /* =========================================
-   7. RESPONSIVIDADE MOBILE (TAMANHO 3 LIVROS)
+   7. RESULTADOS DE BUSCA WEB NO MODAL
+   ========================================= */
+.resultados-scroll {
+  max-height: 180px; 
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.resultados-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.resultados-scroll::-webkit-scrollbar-thumb {
+  background: var(--cor-destaque);
+  border-radius: 4px;
+}
+
+.item-resultado-busca {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 0.2s;
+  align-items: center;
+}
+
+.item-resultado-busca:last-child {
+  border-bottom: none;
+}
+
+.item-resultado-busca:hover {
+  background-color: rgba(139, 28, 49, 0.2); 
+}
+
+.item-resultado-busca img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+
+.info-resultado {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.titulo-res {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.autor-res {
+  font-size: 11.5px;
+  color: #aaa;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================
+   8. RESPONSIVIDADE MOBILE (TAMANHO 3 LIVROS E SCROLL LIVRE)
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
@@ -238,7 +310,6 @@ input:focus { border-color: var(--cor-destaque); }
     display: none;
   }
   
-  /* Tamanho ajustado para caberem 3 livros confortavelmente (~105px) */
   .livro-wrapper {
     flex: 0 0 105px !important; 
     width: 105px !important;
@@ -258,7 +329,6 @@ input:focus { border-color: var(--cor-destaque); }
     font-size: 12px;
   }
 
-  /* Ajustando o botão para a nova altura do livro */
   .btn-voltar-inline {
     width: 35px !important; 
     height: 150px !important;

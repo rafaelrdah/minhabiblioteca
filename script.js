@@ -38,12 +38,114 @@ function fecharModal(idModal) {
 }
 
 // ==========================================
+// BUSCA NA WEB (AGREGADOR: GOOGLE + OPEN LIBRARY)
+// ==========================================
+async function buscarLivroWeb() {
+  const inputBusca = document.getElementById('buscaWebInput');
+  const query = inputBusca.value.trim();
+  const container = document.getElementById('resultados-busca');
+  
+  if (!query) {
+    mostrarAviso("Digite o nome ou ISBN do livro para buscar.");
+    return;
+  }
+
+  container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando em várias bibliotecas...</p>';
+  container.classList.remove('oculto');
+
+  let resultadosMisturados = [];
+
+  const promessaGoogle = fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&langRestrict=pt&maxResults=10`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.items) {
+        return data.items.map(item => {
+          const info = item.volumeInfo;
+          let imagem = info.imageLinks ? info.imageLinks.thumbnail : '';
+          if (imagem) imagem = imagem.replace('http:', 'https:'); 
+          return {
+            titulo: info.title || 'Sem título',
+            autor: info.authors ? info.authors.join(', ') : 'Desconhecido',
+            imagem: imagem,
+            origem: 'Google'
+          };
+        });
+      }
+      return [];
+    });
+
+  const promessaOpenLib = fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.docs) {
+        return data.docs.map(doc => {
+          let imagem = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : '';
+          return {
+            titulo: doc.title || 'Sem título',
+            autor: doc.author_name ? doc.author_name.join(', ') : 'Desconhecido',
+            imagem: imagem,
+            origem: 'Open Lib'
+          };
+        });
+      }
+      return [];
+    });
+
+  try {
+    const respostas = await Promise.allSettled([promessaGoogle, promessaOpenLib]);
+
+    if (respostas[0].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[0].value);
+    if (respostas[1].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[1].value);
+
+    if (resultadosMisturados.length === 0) {
+      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado nas bases.</p>';
+      return;
+    }
+
+    container.innerHTML = ''; 
+
+    resultadosMisturados.forEach(livro => {
+      const div = document.createElement('div');
+      div.className = 'item-resultado-busca';
+      
+      div.innerHTML = `
+        <img src="${livro.imagem || 'https://via.placeholder.com/40x60/2a080d/f0e6d2?text=Sem+Capa'}" alt="Capa">
+        <div class="info-resultado">
+          <div class="titulo-res">
+            ${livro.titulo} 
+            <span style="font-size: 8px; background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; margin-left: 5px; color: #ccc;">${livro.origem}</span>
+          </div>
+          <div class="autor-res">${livro.autor}</div>
+        </div>
+      `;
+      
+      div.onclick = () => {
+        document.getElementById('addTitulo').value = livro.titulo;
+        document.getElementById('addAutor').value = livro.autor;
+        document.getElementById('addImagem').value = livro.imagem;
+        
+        container.classList.add('oculto');
+        inputBusca.value = '';
+        mostrarAviso("Dados preenchidos! Só clicar em Adicionar.");
+      };
+      
+      container.appendChild(div);
+    });
+
+  } catch (error) {
+    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro ao buscar na internet.</p>';
+  }
+}
+
+// ==========================================
 // LIVROS: ADICIONAR E APAGAR
 // ==========================================
 function abrirModalAddLivro() {
   document.getElementById('addTitulo').value = '';
   document.getElementById('addAutor').value = '';
   document.getElementById('addImagem').value = '';
+  document.getElementById('buscaWebInput').value = '';
+  document.getElementById('resultados-busca').classList.add('oculto');
   document.getElementById('modal-add-livro').classList.remove('oculto');
 }
 
@@ -256,7 +358,6 @@ function gerarBotaoVoltarInline() {
   const btn = document.createElement('div');
   btn.className = 'btn-voltar-inline';
   btn.onclick = fecharColecaoAtual;
-  // SVG de uma seta simples
   btn.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5"></path>
@@ -272,9 +373,7 @@ function renderizarEstante() {
   let itensParaExibir = [];
 
   if (visaoAtualColecaoId) {
-    // Adiciona o botão voltar compacto como o PRIMEIRO item da prateleira
     itensParaExibir.push({ tipo: 'botao_voltar' });
-    
     const livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === visaoAtualColecaoId);
     livrosDaColecao.forEach(l => itensParaExibir.push({ tipo: 'livro', dados: l }));
   } else {
