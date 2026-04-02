@@ -342,23 +342,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('Erro no Service Worker:', err));
 }
 
-let eventoInstalacao;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  eventoInstalacao = e;
-  document.getElementById('btn-instalar').classList.remove('oculto');
-});
-
-function instalarApp() {
-  if (eventoInstalacao) {
-    eventoInstalacao.prompt();
-    eventoInstalacao.userChoice.then((resultado) => {
-      if (resultado.outcome === 'accepted') document.getElementById('btn-instalar').classList.add('oculto');
-      eventoInstalacao = null;
-    });
-  }
-}
-
 // Inicializa a página
 carregarDados();
 renderizarEstante();
