@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Biblioteca</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="aviso-tela" class="aviso oculto"></div>
+
+  <header>
+    <div class="header-blur-bg"></div>
+    <div class="header-conteudo">
+      <h1>Minha Biblioteca</h1>
+      
+      <div class="botoes-topo">
+        <button class="btn-primario btn-pequeno" onclick="abrirModalAddLivro()">+ Adicionar Novo Livro</button>
+        <button class="btn-secundario btn-pequeno" onclick="abrirModalCriarColecao()">+ Nova Coleção</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="estante-container" id="container-estantes"></main>
+
+  <div id="modal-add-livro" class="modal oculto">
+    <div class="modal-conteudo modal-glass modal-pequeno">
+      <h2>Adicionar Livro</h2>
+      <input type="text" id="addTitulo" placeholder="Título do livro...">
+      <input type="text" id="addAutor" placeholder="Autor...">
+      <input type="text" id="addImagem" placeholder="Link da capa (Opcional)...">
+      
+      <div class="modal-botoes" style="margin-top: 15px;">
+        <button class="btn-primario" onclick="salvarNovoLivro()">Adicionar</button>
+        <button class="btn-secundario" onclick="fecharModal('modal-add-livro')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-criar-colecao" class="modal oculto">
+    <div class="modal-conteudo modal-glass">
+      <h2>Nova Coleção</h2>
+      <input type="text" id="nomeColecao" placeholder="Nome da Coleção...">
+      <input type="text" id="imagemColecao" placeholder="Link da Capa...">
+      
+      <div class="selecao-livros-glass">
+        <p style="margin-top: 0; font-size: 13px; color: #aaa;">Mover livros soltos para cá:</p>
+        <div id="lista-livros-soltos"></div>
+      </div>
+
+      <div class="modal-botoes">
+        <button class="btn-primario" onclick="salvarNovaColecao()">Salvar Coleção</button>
+        <button class="btn-secundario" onclick="fecharModal('modal-criar-colecao')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-editar-colecao" class="modal oculto">
+    <div class="modal-conteudo modal-glass">
+      <h2>Editar Coleção</h2>
+      <input type="text" id="editNomeColecao" placeholder="Nome da Coleção...">
+      <input type="text" id="editImagemColecao" placeholder="Link da Capa...">
+      
+      <div class="selecao-livros-glass">
+        <p style="margin-top: 0; font-size: 13px; color: #aaa;">Adicionar mais livros soltos:</p>
+        <div id="lista-livros-soltos-editar"></div>
+      </div>
+
+      <div class="modal-botoes">
+        <button class="btn-primario" onclick="salvarEdicaoColecao()">Atualizar</button>
+        <button class="btn-secundario" onclick="fecharModal('modal-editar-colecao')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-status-livro" class="modal oculto">
+    <div class="modal-conteudo modal-glass modal-pequeno">
+      
+      <div class="detalhes-livro-modal">
+        <img id="img-status-livro" src="" alt="Capa">
+      </div>
+
+      <input type="text" id="editTituloLivro" placeholder="Título...">
+      <input type="text" id="editAutorLivro" placeholder="Autor...">
+      <input type="text" id="editImagemLivro" placeholder="Link da Capa...">
+
+      <div class="tags-container" style="margin-top: 15px;">
+        <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 5px;">Status de Leitura:</label>
+        <select id="select-status-livro" class="select-tecnologico">
+          <option value="nao-lido">Não Lido</option>
+          <option value="lendo">Em Andamento</option>
+          <option value="lido">Já Lido</option>
+        </select>
+      </div>
+
+      <div class="modal-botoes">
+        <button class="btn-primario" onclick="salvarStatusLivro()">Atualizar</button>
+        <button class="btn-secundario" onclick="fecharModal('modal-status-livro')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

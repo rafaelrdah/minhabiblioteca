@@ -1,0 +1,176 @@
+/* =========================================
+   CORES E FUNDO
+   ========================================= */
+:root {
+  --cor-fundo: #0a0a0c; 
+  --cor-vinho: #4a0e17; 
+  --cor-destaque: #8b1c31; 
+  --cor-destaque-hover: #a1233b;
+  --cor-painel: #1a1a1e; 
+  --cor-texto: #f4f4f4;
+  --glass-bg: rgba(26, 26, 30, 0.7); 
+}
+
+body {
+  background-color: var(--cor-fundo); 
+  background-image: radial-gradient(rgba(74, 14, 23, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px; 
+  color: var(--cor-texto);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0; padding: 0;
+}
+
+header {
+  position: relative; padding: 40px 20px 30px 20px; text-align: center;
+  border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+  overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+.header-blur-bg {
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, var(--cor-vinho) 0%, var(--cor-fundo) 60%);
+  opacity: 0.4; filter: blur(40px); z-index: 0;
+}
+.header-conteudo { position: relative; z-index: 1; }
+header h1 { margin-top: 0; letter-spacing: 1px; color: #fff; font-weight: 800; }
+
+/* =========================================
+   INPUTS E BOTÕES 
+   ========================================= */
+input, select {
+  padding: 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+  background-color: rgba(0,0,0,0.5); color: #fff; font-size: 14px; 
+  width: 100%; max-width: 100%; box-sizing: border-box; 
+  margin-bottom: 10px; outline: none; transition: border 0.3s;
+}
+input:focus { border-color: var(--cor-destaque); }
+
+.btn-primario {
+  background: linear-gradient(90deg, var(--cor-destaque), #a1233b);
+  color: #fff; font-weight: bold; border-radius: 14px; border: none;
+  padding: 14px; cursor: pointer; transition: transform 0.2s, filter 0.2s;
+  box-shadow: 0 4px 15px rgba(139, 28, 49, 0.4); width: 100%; box-sizing: border-box;
+}
+.btn-primario:hover { transform: scale(1.02); filter: brightness(1.2); }
+
+.btn-secundario {
+  background-color: var(--cor-painel); color: #fff; border: 1px solid rgba(255,255,255,0.1);
+  padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: background 0.2s;
+  width: 100%; box-sizing: border-box;
+}
+.btn-secundario:hover { background-color: #2a2a2e; }
+
+/* Agrupamento dos botões no topo */
+.botoes-topo {
+  display: flex; justify-content: center; gap: 15px; margin-top: 10px;
+}
+.btn-pequeno {
+  width: auto !important; padding: 8px 16px !important; font-size: 13px !important;
+  border-radius: 8px !important; box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
+}
+
+/* =========================================
+   ESTANTES E LIVROS
+   ========================================= */
+.estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+.prateleira {
+  display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;
+  min-height: 220px; padding-bottom: 5px; margin-bottom: 50px;
+  border-bottom: 20px solid var(--cor-vinho); 
+  border-image: linear-gradient(to right, #110305, var(--cor-vinho), #110305) 1;
+  box-shadow: 0px 15px 25px rgba(0,0,0,0.9);
+}
+
+.livro-wrapper {
+  display: flex; flex-direction: column; align-items: center; position: relative; cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.livro-wrapper:hover { transform: translateY(-12px); z-index: 10; }
+
+.livro-capa {
+  width: 125px; height: 180px; object-fit: cover; 
+  border-radius: 6px 12px 12px 6px; box-shadow: -5px 5px 15px rgba(0,0,0,0.8); 
+}
+.capa-colecao { border: 2px solid rgba(255,255,255,0.8); }
+
+.livro-titulo-container {
+  width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
+  background-color: rgba(0,0,0,0.6); padding: 4px 0; text-align: center;
+}
+.livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: bold; color: #fff; }
+
+@keyframes vaiEVolta {
+  0%, 10% { transform: translateX(5%); }
+  90%, 100% { transform: translateX(calc(120px - 100%)); }
+}
+
+.cartao-voltar {
+  width: 125px; height: 180px; background-color: var(--cor-painel);
+  border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  color: #aaa; font-weight: bold; transition: all 0.2s;
+}
+.cartao-voltar:hover { background-color: var(--cor-vinho); color: #fff; border-color: transparent; }
+.cartao-voltar span { font-size: 30px; margin-bottom: 10px; color: var(--cor-destaque); }
+
+/* Lápis Minimalista Integrado na Capa */
+.btn-editar-lapiz {
+  position: absolute; top: 8px; left: 8px;
+  background-color: transparent; color: rgba(255, 255, 255, 0.9); 
+  border: none; box-shadow: none; backdrop-filter: none; padding: 0;
+  width: auto; height: auto; display: flex; justify-content: center; align-items: center;
+  cursor: pointer; z-index: 20; transition: all 0.2s;
+  filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.95));
+}
+.btn-editar-lapiz:hover { transform: scale(1.2); color: var(--cor-destaque); }
+.btn-editar-lapiz svg { width: 18px; height: 18px; }
+
+/* Tag de Status */
+.status-badge {
+  position: absolute; top: 15px; left: -15px;
+  padding: 5px 10px; font-size: 11px; font-weight: bold; color: white;
+  border-radius: 8px; box-shadow: 2px 4px 8px rgba(0,0,0,0.6);
+  transform: rotate(-10deg); z-index: 5; border: 1px solid rgba(255,255,255,0.2);
+}
+.status-lido { background-color: #27ae60; } 
+.status-lendo { background-color: var(--cor-destaque); } 
+.status-nao-lido { background-color: #555; } 
+
+/* =========================================
+   MODAIS E GLASSMORPHISM
+   ========================================= */
+.modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000;
+  opacity: 1; transition: opacity 0.3s;
+}
+.modal.oculto { opacity: 0; pointer-events: none; }
+
+.modal-glass {
+  background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 24px; 
+  width: 90%; max-width: 450px; box-sizing: border-box; box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+}
+.modal-pequeno { max-width: 340px; }
+.modal-glass h2 { color: #fff; margin-top: 0; margin-bottom: 20px; text-align: center; }
+
+.selecao-livros-glass { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+#lista-livros-soltos, #lista-livros-soltos-editar { max-height: 120px; overflow-y: auto; }
+#lista-livros-soltos::-webkit-scrollbar, #lista-livros-soltos-editar::-webkit-scrollbar { width: 6px; }
+#lista-livros-soltos::-webkit-scrollbar-thumb, #lista-livros-soltos-editar::-webkit-scrollbar-thumb { background: var(--cor-destaque); border-radius: 3px; }
+
+.checkbox-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 14px;}
+.checkbox-item input { width: auto; margin: 0; accent-color: var(--cor-destaque); }
+
+.detalhes-livro-modal { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; }
+.detalhes-livro-modal img { width: 100px; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
+
+.modal-botoes { display: flex; gap: 10px; }
+
+.aviso {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background-color: var(--cor-painel); color: #fff; padding: 12px 25px;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); border-left: 4px solid var(--cor-destaque);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.8); z-index: 2000; font-size: 14px; font-weight: bold;
+  transition: opacity 0.3s, top 0.3s;
+}
+.aviso.oculto { opacity: 0; top: -20px; }
