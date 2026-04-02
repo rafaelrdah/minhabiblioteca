@@ -181,14 +181,14 @@ input:focus { border-color: var(--cor-destaque); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 45px; /* Bem mais fino que um livro */
-  height: 180px; /* Mesma altura que os livros do PC */
-  background-color: rgba(255, 255, 255, 0.03); /* Fundo com baixíssima opacidade */
+  width: 45px; 
+  height: 180px; 
+  background-color: rgba(255, 255, 255, 0.03); 
   border-radius: 8px;
   cursor: pointer;
-  flex-shrink: 0; /* Para não ser espremido pelo flexbox */
+  flex-shrink: 0; 
   transition: background-color 0.2s, transform 0.2s;
-  margin-bottom: 30px; /* Para alinhar certinho com as capas */
+  margin-bottom: 30px; 
 }
 
 .btn-voltar-inline:hover {
@@ -204,11 +204,11 @@ input:focus { border-color: var(--cor-destaque); }
 }
 
 /* =========================================
-   7. RESPONSIVIDADE MOBILE (CARROSSEL E TAMANHOS)
+   7. RESPONSIVIDADE MOBILE (CARROSSEL LIVRE)
    ========================================= */
 @media (max-width: 768px) {
   .estante-container {
-    padding: 0; /* Remove o padding do container para dar espaço aos livros */
+    padding: 0; 
   }
 
   .prateleira {
@@ -218,10 +218,10 @@ input:focus { border-color: var(--cor-destaque); }
     overflow-y: hidden !important;
     justify-content: flex-start !important;
     gap: 12px !important;
-    padding-bottom: 25px !important; /* Espaço para animação não cortar embaixo */
-    padding-left: 15px !important; /* Evita que o primeiro item seja cortado à esquerda */
+    padding-bottom: 25px !important; 
+    padding-left: 15px !important; 
     padding-right: 15px !important; 
-    scroll-snap-type: x mandatory; 
+    /* Removido o scroll-snap-type para deixar o deslizamento 100% livre! */
     -webkit-overflow-scrolling: touch;
   }
 
@@ -229,14 +229,12 @@ input:focus { border-color: var(--cor-destaque); }
     display: none;
   }
   
-  /* Tamanho exato para caberem os 4 itens confortavelmente na tela */
   .livro-wrapper {
     flex: 0 0 84px !important; 
     width: 84px !important;
-    scroll-snap-align: start;
+    /* Removido o scroll-snap-align */
   }
 
-  /* Capas maiores no celular */
   .livro-capa, .capa-colecao {
     width: 84px !important;
     height: 125px !important;
@@ -247,12 +245,10 @@ input:focus { border-color: var(--cor-destaque); }
     padding: 4px 0;
   }
   
-  /* Textos maiores no celular */
   .livro-titulo-texto {
     font-size: 11.5px;
   }
 
-  /* Ajuste do botão voltar no celular para acompanhar a altura da capa menor */
   .btn-voltar-inline {
     width: 35px !important; 
     height: 125px !important;
