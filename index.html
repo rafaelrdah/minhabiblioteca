@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Minha Biblioteca</title>
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,8 +17,9 @@
       <h1>Minha Biblioteca</h1>
       
       <div class="botoes-topo">
-        <button class="btn-primario btn-pequeno" onclick="abrirModalAddLivro()">+ Adicionar Novo Livro</button>
+        <button class="btn-primario btn-pequeno" onclick="abrirModalAddLivro()">+ Adicionar Livro</button>
         <button class="btn-secundario btn-pequeno" onclick="abrirModalCriarColecao()">+ Nova Coleção</button>
+        <button id="btn-instalar" class="btn-secundario btn-pequeno oculto" onclick="instalarApp()">📲 Instalar App</button>
       </div>
     </div>
   </header>
@@ -63,14 +65,21 @@
       <input type="text" id="editImagemColecao" placeholder="Link da Capa...">
       
       <div class="selecao-livros-glass">
+        <p style="margin-top: 0; font-size: 13px; color: #aaa;">Livros nesta coleção:</p>
+        <div id="lista-livros-na-colecao"></div>
+      </div>
+
+      <div class="selecao-livros-glass">
         <p style="margin-top: 0; font-size: 13px; color: #aaa;">Adicionar mais livros soltos:</p>
         <div id="lista-livros-soltos-editar"></div>
       </div>
 
       <div class="modal-botoes">
         <button class="btn-primario" onclick="salvarEdicaoColecao()">Atualizar</button>
-        <button class="btn-secundario" onclick="fecharModal('modal-editar-colecao')">Cancelar</button>
+        <button class="btn-secundario" onclick="fecharModal('modal-editar-colecao')">Fechar</button>
       </div>
+      
+      <button class="btn-perigo" style="width: 100%; margin-top: 15px; padding: 12px;" onclick="apagarColecao()">🗑️ Apagar Coleção Inteira</button>
     </div>
   </div>
 
@@ -94,13 +103,18 @@
         </select>
       </div>
 
+      <button id="btn-remover-da-colecao" class="btn-secundario" style="width: 100%; margin-bottom: 15px;" onclick="removerLivroDaColecaoPeloLivro()">Sair da Coleção</button>
+
       <div class="modal-botoes">
         <button class="btn-primario" onclick="salvarStatusLivro()">Atualizar</button>
         <button class="btn-secundario" onclick="fecharModal('modal-status-livro')">Fechar</button>
       </div>
+
+      <button class="btn-perigo" style="width: 100%; margin-top: 15px; padding: 12px;" onclick="apagarLivro()">🗑️ Apagar Livro</button>
     </div>
   </div>
 
   <script src="script.js"></script>
 </body>
-</html>
+        </html>
+        
