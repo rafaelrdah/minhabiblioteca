@@ -411,8 +411,9 @@ function renderizarEstante() {
       btnToggle.onclick = () => toggleColecao(colecao.id);
       
       const rotSeta = isExpandida ? '180deg' : '0deg';
+      // MUDANÇA: Emoji alterado para 📚
       btnToggle.innerHTML = `
-        <span style="flex:1; text-align:left; font-size:14px; font-weight:bold;">📁 ${colecao.nome}</span>
+        <span style="flex:1; text-align:left; font-size:14px; font-weight:bold;">📚 ${colecao.nome}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${rotSeta}); transition: transform 0.3s ease;">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
