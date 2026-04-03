@@ -558,6 +558,7 @@ function gerarElementoLivro(livro) {
     <img src="${livro.imagem}" alt="Capa" class="livro-capa">
     <div class="livro-titulo-container">
       <span class="livro-titulo-texto" style="${estiloAnimacao}">${livro.titulo}</span>
+      <span class="livro-autor-texto">${livro.autor ? livro.autor : 'Desconhecido'}</span>
     </div>
   `;
 

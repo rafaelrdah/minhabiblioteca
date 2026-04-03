@@ -204,6 +204,18 @@ input:focus { border-color: var(--cor-destaque); }
 }
 .livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: bold; color: #fff; }
 
+.livro-autor-texto {
+  display: block; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; /* Coloca "..." se o nome for muito grande */
+  font-size: 11px; 
+  color: #888; /* Cor cinza, com pouco destaque */
+  font-weight: normal; 
+  margin-top: 1px; 
+  padding: 0 6px;
+}
+
 @keyframes vaiEVolta {
   0%, 10% { transform: translateX(5%); }
   90%, 100% { transform: translateX(calc(120px - 100%)); }
@@ -294,6 +306,9 @@ input:focus { border-color: var(--cor-destaque); }
     max-width: 100vw;
     overflow-x: hidden;
     box-sizing: border-box;
+  }
+.livro-autor-texto {
+    font-size: 9.5px;
   }
 
   .prateleira {
