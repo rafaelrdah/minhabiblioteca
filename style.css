@@ -180,22 +180,12 @@ input:focus { border-color: var(--cor-destaque); }
 .estante-container { max-width: 900px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
 
 .prateleira {
-    display: flex !important;
-    flex-wrap: nowrap !important; 
-    overflow-x: auto !important; 
-    overflow-y: hidden !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    padding-top: 20px !important; /* MÁGICA AQUI: Dá espaço pro livro pular dentro da caixa */
-    padding-bottom: 25px !important; 
-    margin-left: -15px !important; 
-    margin-right: -15px !important;
-    padding-left: 15px !important; 
-    padding-right: 15px !important; 
-    width: 100vw !important;
-    -webkit-overflow-scrolling: touch;
-    box-sizing: border-box;
-  }
+  display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;
+  min-height: 220px; padding-bottom: 5px; margin-bottom: 50px;
+  border-bottom: 20px solid var(--cor-vinho); 
+  border-image: linear-gradient(to right, #110305, var(--cor-vinho), #110305) 1;
+  box-shadow: 0px 15px 25px rgba(0,0,0,0.9);
+}
 
 .livro-wrapper {
   display: flex; flex-direction: column; align-items: center; position: relative; cursor: pointer;
@@ -336,6 +326,10 @@ input:focus { border-color: var(--cor-destaque); }
     width: 100vw !important;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
+
+    /* O truque para sobrepor sem estragar o tamanho e espaçamento: */
+    padding-top: 15px !important; 
+    margin-top: -15px !important; 
   }
 
   .prateleira::-webkit-scrollbar {
