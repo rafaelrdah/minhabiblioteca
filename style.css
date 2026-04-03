@@ -99,7 +99,7 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   4. ACORDEÃO E BOLINHAS DE STATUS (NOVO!)
+   4. ACORDEÃO E BOLINHAS DE STATUS
    ========================================= */
 .secao-colecoes { margin-bottom: 20px; }
 .colecao-accordion-box { margin-bottom: 10px; }
@@ -202,15 +202,16 @@ input:focus { border-color: var(--cor-destaque); }
   width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
   background-color: rgba(0,0,0,0.6); padding: 4px 0; text-align: center;
 }
+
 .livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: bold; color: #fff; }
 
 .livro-autor-texto {
   display: block; 
   white-space: nowrap; 
   overflow: hidden; 
-  text-overflow: ellipsis; /* Coloca "..." se o nome for muito grande */
+  text-overflow: ellipsis; 
   font-size: 11px; 
-  color: #888; /* Cor cinza, com pouco destaque */
+  color: #888; 
   font-weight: normal; 
   margin-top: 1px; 
   padding: 0 6px;
@@ -307,9 +308,6 @@ input:focus { border-color: var(--cor-destaque); }
     overflow-x: hidden;
     box-sizing: border-box;
   }
-.livro-autor-texto {
-    font-size: 9.5px;
-  }
 
   .prateleira {
     display: flex !important;
@@ -353,6 +351,10 @@ input:focus { border-color: var(--cor-destaque); }
   
   .livro-titulo-texto {
     font-size: 12px;
+  }
+
+  .livro-autor-texto {
+    font-size: 9.5px;
   }
   
   .status-badge {

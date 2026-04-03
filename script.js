@@ -7,7 +7,7 @@ let colecoesExpandidas = [];
 const LIVROS_POR_PRATELEIRA = 6;
 
 // ==========================================
-// SALVAMENTO, BACKUP E PROCESSAMENTO DE IMAGEM
+// SALVAMENTO E PROCESSAMENTO DE IMAGEM
 // ==========================================
 function carregarDados() {
   const bibliotecaSalva = localStorage.getItem('minhaBiblioteca');
@@ -21,21 +21,67 @@ function salvarDados() {
   localStorage.setItem('minhasColecoes', JSON.stringify(minhasColecoes));
 }
 
-function exportarDados() {
+// ==========================================
+// BACKUP (NOVO SISTEMA NATIVO .MBIB)
+// ==========================================
+async function exportarDados() {
   const dados = {
     biblioteca: minhaBiblioteca,
     colecoes: minhasColecoes
   };
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
-  const downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute("href", dataStr);
-  const dataHoje = new Date().toISOString().slice(0, 10);
-  downloadAnchorNode.setAttribute("download", `biblioteca_backup_${dataHoje}.json`);
-  document.body.appendChild(downloadAnchorNode); 
-  downloadAnchorNode.click();
-  downloadAnchorNode.remove();
   
-  mostrarAviso("Backup exportado para o seu celular!");
+  const jsonText = JSON.stringify(dados);
+  const dataHoje = new Date().toISOString().slice(0, 10);
+  const nomeArquivo = `biblioteca_backup_${dataHoje}.mbib`;
+
+  try {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+      const { Filesystem } = window.Capacitor.Plugins;
+
+      let statusPermissao = await Filesystem.checkPermissions();
+      
+      if (statusPermissao.publicStorage !== 'granted') {
+        statusPermissao = await Filesystem.requestPermissions();
+      }
+
+      if (statusPermissao.publicStorage !== 'granted') {
+         mostrarAviso("Permissão negada! O backup não pode ser salvo.");
+         fecharModal('modal-backup');
+         return;
+      }
+
+      try {
+        await Filesystem.mkdir({
+          path: 'Minha Biblioteca',
+          directory: 'DOCUMENTS', 
+          recursive: true 
+        });
+      } catch (e) {}
+
+      await Filesystem.writeFile({
+        path: `Minha Biblioteca/${nomeArquivo}`,
+        data: jsonText,
+        directory: 'DOCUMENTS', 
+        encoding: 'utf8'        
+      });
+
+      mostrarAviso("Backup salvo na pasta Documentos/Minha Biblioteca!");
+      
+    } else {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonText);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", nomeArquivo);
+      document.body.appendChild(downloadAnchorNode); 
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      mostrarAviso("Backup exportado para os downloads!");
+    }
+  } catch (error) {
+    console.error("Erro no backup:", error);
+    mostrarAviso("Falha: " + (error.message || "Erro desconhecido"));
+  }
+
   fecharModal('modal-backup');
 }
 
@@ -46,6 +92,13 @@ function acionarImportacao() {
 function importarDados(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+  const nomeArquivo = file.name.toLowerCase();
+  if (!nomeArquivo.endsWith('.mbib') && !nomeArquivo.endsWith('.json')) {
+    mostrarAviso("Formato inválido! Escolha um arquivo .mbib ou .json");
+    event.target.value = ''; 
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -59,13 +112,15 @@ function importarDados(event) {
         mostrarAviso("Backup restaurado com sucesso!");
         fecharModal('modal-backup');
       } else {
-        mostrarAviso("Arquivo de backup inválido.");
+        mostrarAviso("Arquivo de backup inválido ou corrompido.");
       }
     } catch(err) {
-      mostrarAviso("Erro ao ler o arquivo.");
+      mostrarAviso("Erro ao ler os dados do arquivo.");
     }
   };
-  reader.readAsText(file);
+  
+  // CORREÇÃO 1: Força o leitor manual a respeitar o Português (UTF-8)
+  reader.readAsText(file, 'UTF-8');
   event.target.value = '';
 }
 
@@ -108,9 +163,6 @@ function processarUploadImagem(event, inputIdTarget, imgPreviewId = null) {
   reader.readAsDataURL(file);
 }
 
-// ==========================================
-// AVISOS E MODAIS
-// ==========================================
 function mostrarAviso(mensagem) {
   const caixa = document.getElementById('aviso-tela');
   caixa.innerText = mensagem;
@@ -128,9 +180,6 @@ function abrirModalBackup() {
   document.getElementById('modal-backup').classList.remove('oculto');
 }
 
-// ==========================================
-// BUSCA NA WEB
-// ==========================================
 async function buscarLivroWeb() {
   const inputBusca = document.getElementById('buscaWebInput');
   const query = inputBusca.value.trim();
@@ -208,9 +257,6 @@ async function buscarLivroWeb() {
   }
 }
 
-// ==========================================
-// LIVROS E COLEÇÕES: CRUD
-// ==========================================
 function abrirModalAddLivro() {
   document.getElementById('addTitulo').value = '';
   document.getElementById('addAutor').value = '';
@@ -379,9 +425,6 @@ function salvarStatusLivro() {
   mostrarAviso("Livro atualizado!");
 }
 
-// ==========================================
-// RENDERIZAÇÃO E ORDENAÇÃO E BOLINHAS DE STATUS
-// ==========================================
 function fatiarArray(array, tamanho) {
   const fatiado = [];
   for (let i = 0; i < array.length; i += tamanho) fatiado.push(array.slice(i, i + tamanho));
@@ -402,7 +445,6 @@ function ordenarLivrosPorStatus(livros) {
   return livros.sort((a, b) => pesos[a.status] - pesos[b.status]);
 }
 
-// NOVO: Função que cria as bolinhas dinâmicas de status (Verde, Cinza, Carmim)
 function gerarDotsStatus(livros) {
   if (!livros || livros.length === 0) return '';
   let lidos = 0, lendo = 0, naoLidos = 0;
@@ -413,7 +455,7 @@ function gerarDotsStatus(livros) {
     else naoLidos++;
   });
 
-  let html = '<div class="status-dots-wrapper" onclick="event.stopPropagation()">'; // stopPropagation evita abrir a sanfona ao clicar na bolinha
+  let html = '<div class="status-dots-wrapper" onclick="event.stopPropagation()">'; 
   
   if (lidos > 0) {
     html += `<div class="dot-item" tabindex="0" data-tooltip="${lidos} Lido${lidos>1?'s':''}"><div class="circle dot-verde"></div><span class="dot-count">${lidos}</span></div>`;
@@ -433,7 +475,6 @@ function renderizarEstante() {
   const container = document.getElementById('container-estantes');
   container.innerHTML = ''; 
 
-  // 1. ÁREA DE COLEÇÕES
   if (minhasColecoes.length > 0) {
     const secaoColecoes = document.createElement('div');
     secaoColecoes.className = 'secao-colecoes';
@@ -453,9 +494,8 @@ function renderizarEstante() {
       let livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === colecao.id);
       
       const rotSeta = isExpandida ? '180deg' : '0deg';
-      const dotsHtml = gerarDotsStatus(livrosDaColecao); // Puxa as bolinhas com base no que tem dentro
+      const dotsHtml = gerarDotsStatus(livrosDaColecao); 
 
-      // Bolinhas inseridas do lado esquerdo da seta
       btnToggle.innerHTML = `
         <span style="flex:1; text-align:left; font-size:14px; font-weight:bold; display:flex; align-items:center; gap:8px;">📚 ${colecao.nome}</span>
         ${dotsHtml}
@@ -498,14 +538,13 @@ function renderizarEstante() {
     container.appendChild(secaoColecoes);
   }
 
-  // 2. ÁREA DOS LIVROS SOLTOS
   let livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
   
   if (livrosSoltos.length > 0 || minhaBiblioteca.length === 0) {
     const secaoSoltos = document.createElement('div');
     secaoSoltos.className = 'secao-soltos';
     
-    const dotsHtmlSoltos = gerarDotsStatus(livrosSoltos); // Bolinhas dos livros soltos
+    const dotsHtmlSoltos = gerarDotsStatus(livrosSoltos); 
 
     if (minhasColecoes.length > 0) {
       secaoSoltos.innerHTML = `
@@ -568,6 +607,45 @@ function gerarElementoLivro(livro) {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('Erro no Service Worker:', err));
 }
+
+// ==========================================
+// ESCUTAR ABERTURA NATIVA DE ARQUIVO .MBIB
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.Capacitor && window.Capacitor.Plugins) {
+    const { App, Filesystem } = window.Capacitor.Plugins;
+
+    if (App && Filesystem) {
+      App.addListener('appUrlOpen', async (data) => {
+        if (data.url && data.url.endsWith('.mbib')) {
+          try {
+            mostrarAviso("Carregando arquivo de backup...");
+            
+            const contents = await Filesystem.readFile({
+              path: data.url,
+              // CORREÇÃO 2: Força o Android a ler e entregar o texto traduzido (UTF-8)
+              encoding: 'utf8' 
+            });
+
+            // CORREÇÃO 3: Tiramos a função atob() que destruía os acentos
+            const dados = JSON.parse(contents.data);
+
+            if (dados.biblioteca && dados.colecoes) {
+              minhaBiblioteca = dados.biblioteca;
+              minhasColecoes = dados.colecoes;
+              salvarDados();
+              renderizarEstante();
+              mostrarAviso("Biblioteca restaurada do arquivo!");
+            }
+          } catch (error) {
+            console.error("Erro ao ler .mbib externo:", error);
+            mostrarAviso("Erro ao ler o arquivo .mbib.");
+          }
+        }
+      });
+    }
+  }
+});
 
 carregarDados();
 renderizarEstante();
