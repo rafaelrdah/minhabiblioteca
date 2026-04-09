@@ -438,3 +438,11 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-add-nota:hover { background: var(--cor-vinho); border-color: var(--cor-destaque); }
    
 }
+
+/* =========================================
+   CORREÇÃO DAS GAVETAS ESCONDIDAS
+   ========================================= */
+#area-edicao-livro.oculto,
+#resultados-busca.oculto {
+  display: none !important;
+}
