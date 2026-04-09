@@ -6,7 +6,7 @@
   <title>Minha Biblioteca</title>
   <link rel="manifest" href="manifest.json">
   
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
 
@@ -121,8 +121,10 @@
   </div>
 
   <div id="modal-status-livro" class="modal oculto">
-    <div class="modal-conteudo modal-glass modal-pequeno">
+    <div class="modal-conteudo modal-glass modal-pequeno" style="position: relative;">
       
+      <button id="btn-engrenagem-edicao" title="Opções e Edição" onclick="toggleEdicaoLivro()">⚙️</button>
+
       <div class="detalhes-livro-modal">
         <img id="img-status-livro" src="" alt="Capa">
         <h3 id="txt-titulo-livro" style="margin: 10px 0 5px 0; color: #fff; text-align: center;"></h3>
@@ -142,8 +144,6 @@
           <option value="lido">Já Lido</option>
         </select>
       </div>
-
-      <button class="btn-icone" style="width: 100%; margin-bottom: 15px; border-style: solid; font-size: 12px; border-color: rgba(255,255,255,0.1);" onclick="toggleEdicaoLivro()">⚙️ Opções e Edição do Livro</button>
 
       <div id="area-edicao-livro" class="oculto" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px dashed rgba(255,255,255,0.1);">
         
@@ -190,6 +190,6 @@
     </main>
   </div>
 
-  <script src="script.js?v=20"></script>
+  <script src="script.js?v=21"></script>
 </body>
 </html>
