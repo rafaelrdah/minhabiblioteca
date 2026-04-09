@@ -1,33 +1,40 @@
 let minhaBiblioteca = [];
 let minhasColecoes = [];
+let anotacoesGlobais = {}; // NOVO: Dicionário que guarda as notas de cada livro
 let livroEditandoStatus = null;
 let colecaoEditandoId = null; 
 let colecoesExpandidas = []; 
+let livroAtualAnotacoes = null; // NOVO: Sabe qual livro está aberto nas notas
 
 const LIVROS_POR_PRATELEIRA = 6;
 
 // ==========================================
-// SALVAMENTO E PROCESSAMENTO DE IMAGEM
+// CARREGAMENTO E SALVAMENTO BÁSICO (LOCAL)
 // ==========================================
 function carregarDados() {
   const bibliotecaSalva = localStorage.getItem('minhaBiblioteca');
   const colecoesSalvas = localStorage.getItem('minhasColecoes');
+  const notasSalvas = localStorage.getItem('anotacoesGlobais');
+  
   if (bibliotecaSalva) minhaBiblioteca = JSON.parse(bibliotecaSalva);
   if (colecoesSalvas) minhasColecoes = JSON.parse(colecoesSalvas);
+  if (notasSalvas) anotacoesGlobais = JSON.parse(notasSalvas);
 }
 
 function salvarDados() {
   localStorage.setItem('minhaBiblioteca', JSON.stringify(minhaBiblioteca));
   localStorage.setItem('minhasColecoes', JSON.stringify(minhasColecoes));
+  localStorage.setItem('anotacoesGlobais', JSON.stringify(anotacoesGlobais));
 }
 
 // ==========================================
-// BACKUP (NOVO SISTEMA NATIVO .MBIB)
+// BACKUP GERAL (.MBIB)
 // ==========================================
 async function exportarDados() {
   const dados = {
     biblioteca: minhaBiblioteca,
-    colecoes: minhasColecoes
+    colecoes: minhasColecoes,
+    anotacoes: anotacoesGlobais // Agora o backup leva as notas junto!
   };
   
   const jsonText = JSON.stringify(dados);
@@ -39,7 +46,6 @@ async function exportarDados() {
       const { Filesystem } = window.Capacitor.Plugins;
 
       let statusPermissao = await Filesystem.checkPermissions();
-      
       if (statusPermissao.publicStorage !== 'granted') {
         statusPermissao = await Filesystem.requestPermissions();
       }
@@ -51,11 +57,7 @@ async function exportarDados() {
       }
 
       try {
-        await Filesystem.mkdir({
-          path: 'Minha Biblioteca',
-          directory: 'DOCUMENTS', 
-          recursive: true 
-        });
+        await Filesystem.mkdir({ path: 'Minha Biblioteca', directory: 'DOCUMENTS', recursive: true });
       } catch (e) {}
 
       await Filesystem.writeFile({
@@ -66,7 +68,6 @@ async function exportarDados() {
       });
 
       mostrarAviso("Backup salvo na pasta Documentos/Minha Biblioteca!");
-      
     } else {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonText);
       const downloadAnchorNode = document.createElement('a');
@@ -81,13 +82,10 @@ async function exportarDados() {
     console.error("Erro no backup:", error);
     mostrarAviso("Falha: " + (error.message || "Erro desconhecido"));
   }
-
   fecharModal('modal-backup');
 }
 
-function acionarImportacao() {
-  document.getElementById('fileImportar').click();
-}
+function acionarImportacao() { document.getElementById('fileImportar').click(); }
 
 function importarDados(event) {
   const file = event.target.files[0];
@@ -107,38 +105,183 @@ function importarDados(event) {
       if (dados.biblioteca && dados.colecoes) {
         minhaBiblioteca = dados.biblioteca;
         minhasColecoes = dados.colecoes;
-        salvarDados();
-        renderizarEstante();
+        if (dados.anotacoes) anotacoesGlobais = dados.anotacoes; // Restaura as notas
+        
+        salvarDados(); renderizarEstante();
         mostrarAviso("Backup restaurado com sucesso!");
         fecharModal('modal-backup');
       } else {
         mostrarAviso("Arquivo de backup inválido ou corrompido.");
       }
-    } catch(err) {
-      mostrarAviso("Erro ao ler os dados do arquivo.");
-    }
+    } catch(err) { mostrarAviso("Erro ao ler os dados do arquivo."); }
   };
-  
-  // CORREÇÃO 1: Força o leitor manual a respeitar o Português (UTF-8)
   reader.readAsText(file, 'UTF-8');
   event.target.value = '';
 }
 
+// ==========================================
+// TELA DE ANOTAÇÕES (SEGUNDO CÉREBRO E ESCRITA FÍSICA)
+// ==========================================
+function abrirTelaAnotacoes() {
+  if (!livroEditandoStatus) return;
+  livroAtualAnotacoes = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
+  if (!livroAtualAnotacoes) return;
+
+  document.getElementById('titulo-anotacoes-livro').innerText = livroAtualAnotacoes.titulo;
+  document.getElementById('tela-anotacoes').classList.remove('oculto');
+  
+  if (!anotacoesGlobais[livroAtualAnotacoes.id]) {
+      anotacoesGlobais[livroAtualAnotacoes.id] = [];
+  }
+  
+  renderizarAnotacoes();
+}
+
+function fecharTelaAnotacoes() {
+  document.getElementById('tela-anotacoes').classList.add('oculto');
+  livroAtualAnotacoes = null;
+}
+
+function criarNovoTopico() {
+  const input = document.getElementById('novoNomeTopico');
+  const nome = input.value.trim();
+  if (!nome) return mostrarAviso("Digite o nome do tópico!");
+  
+  const novoTopico = { id: Date.now(), titulo: nome, entradas: [] };
+  anotacoesGlobais[livroAtualAnotacoes.id].push(novoTopico);
+  
+  input.value = '';
+  salvarAnotacoesEExportarTxt();
+  renderizarAnotacoes();
+}
+
+function adicionarEntrada(idTopico) {
+  const input = document.getElementById('input-entrada-' + idTopico);
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  const topico = anotacoesGlobais[livroAtualAnotacoes.id].find(t => t.id === idTopico);
+  if (topico) {
+      topico.entradas.push({ id: Date.now(), texto: texto });
+      salvarAnotacoesEExportarTxt();
+      renderizarAnotacoes();
+  }
+}
+
+function removerTopico(idTopico) {
+  if(confirm("Apagar este tópico e todas as anotações nele?")) {
+      anotacoesGlobais[livroAtualAnotacoes.id] = anotacoesGlobais[livroAtualAnotacoes.id].filter(t => t.id !== idTopico);
+      salvarAnotacoesEExportarTxt();
+      renderizarAnotacoes();
+  }
+}
+
+function removerEntrada(idTopico, idEntrada) {
+   const topico = anotacoesGlobais[livroAtualAnotacoes.id].find(t => t.id === idTopico);
+   if(topico) {
+       topico.entradas = topico.entradas.filter(e => e.id !== idEntrada);
+       salvarAnotacoesEExportarTxt();
+       renderizarAnotacoes();
+   }
+}
+
+function renderizarAnotacoes() {
+  const container = document.getElementById('lista-topicos');
+  container.innerHTML = '';
+  const topicos = anotacoesGlobais[livroAtualAnotacoes.id] || [];
+
+  if(topicos.length === 0) {
+      container.innerHTML = '<p style="color:#aaa; text-align:center; margin-top:40px;">Nenhuma anotação ainda. Crie um tópico acima para começar!</p>';
+      return;
+  }
+
+  topicos.forEach(topico => {
+      const card = document.createElement('div');
+      card.className = 'topico-card';
+      
+      let entradasHtml = '';
+      topico.entradas.forEach(ent => {
+          entradasHtml += `
+              <div class="entrada-item">
+                  <span>${ent.texto}</span>
+                  <button class="btn-remover-nota" onclick="removerEntrada(${topico.id}, ${ent.id})">✖</button>
+              </div>
+          `;
+      });
+
+      card.innerHTML = `
+          <div class="topico-header">
+              <h3>${topico.titulo}</h3>
+              <button class="btn-remover-topico" onclick="removerTopico(${topico.id})" title="Apagar Tópico">🗑️</button>
+          </div>
+          <div class="entradas-container">
+              ${entradasHtml}
+          </div>
+          <div class="add-entrada-box">
+              <input type="text" id="input-entrada-${topico.id}" placeholder="Escreva uma nova nota..." onkeypress="if(event.key === 'Enter') adicionarEntrada(${topico.id})">
+              <button class="btn-add-nota" onclick="adicionarEntrada(${topico.id})">Adicionar</button>
+          </div>
+      `;
+      container.appendChild(card);
+  });
+}
+
+// O ROBÔ QUE CRIA A PASTA DO LIVRO E GERA O ARQUIVO DE TEXTO!
+async function salvarAnotacoesEExportarTxt() {
+  salvarDados(); // Salva na memória do app primeiro
+
+  if (!livroAtualAnotacoes) return;
+
+  // Tira espaços e caracteres estranhos do nome do livro para não dar erro na pasta do Android
+  const nomeSeguro = livroAtualAnotacoes.titulo.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+  const nomeArquivo = `anotacoes_${nomeSeguro}.txt`;
+  
+  // Monta o texto de forma limpa para ser lido em qualquer computador
+  let textoFisico = `=================================\nLIVRO: ${livroAtualAnotacoes.titulo}\nAUTOR: ${livroAtualAnotacoes.autor || 'Desconhecido'}\n=================================\n\n`;
+  
+  const topicos = anotacoesGlobais[livroAtualAnotacoes.id] || [];
+  topicos.forEach(t => {
+      textoFisico += `[ ${t.titulo.toUpperCase()} ]\n`;
+      t.entradas.forEach(e => { textoFisico += `  - ${e.texto}\n`; });
+      textoFisico += `\n`;
+  });
+
+  try {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+          const { Filesystem } = window.Capacitor.Plugins;
+          const caminhoPastaLivro = `Minha Biblioteca/${nomeSeguro}`;
+          
+          try {
+              // Tenta criar a pasta específica do livro
+              await Filesystem.mkdir({ path: caminhoPastaLivro, directory: 'DOCUMENTS', recursive: true });
+          } catch(e) {} // Ignora se a pasta já existe
+
+          // Salva o TXT lindão lá dentro
+          await Filesystem.writeFile({
+              path: `${caminhoPastaLivro}/${nomeArquivo}`,
+              data: textoFisico,
+              directory: 'DOCUMENTS',
+              encoding: 'utf8'
+          });
+      }
+  } catch(e) { console.error("Erro ao gerar o TXT físico", e); }
+}
+
+// ==========================================
+// LIVROS E COLEÇÕES: CRUD BÁSICO
+// ==========================================
 function processarUploadImagem(event, inputIdTarget, imgPreviewId = null) {
   const file = event.target.files[0];
   if (!file) return;
 
   mostrarAviso("Processando imagem...");
-
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 300; 
-      const MAX_HEIGHT = 450;
-      let width = img.width;
-      let height = img.height;
+      const MAX_WIDTH = 300; const MAX_HEIGHT = 450;
+      let width = img.width; let height = img.height;
 
       if (width > height) {
         if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
@@ -146,14 +289,12 @@ function processarUploadImagem(event, inputIdTarget, imgPreviewId = null) {
         if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
       }
 
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width; canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       document.getElementById(inputIdTarget).value = dataUrl;
-      
       if (imgPreviewId) document.getElementById(imgPreviewId).src = dataUrl;
       
       mostrarAviso("Capa carregada com sucesso!");
@@ -172,20 +313,21 @@ function mostrarAviso(mensagem) {
 
 function fecharModal(idModal) {
   document.getElementById(idModal).classList.add('oculto');
-  if (idModal === 'modal-status-livro') livroEditandoStatus = null;
+  if (idModal === 'modal-status-livro') {
+    livroEditandoStatus = null;
+    document.getElementById('area-edicao-livro').classList.add('oculto'); // Reseta a edição
+  }
   if (idModal === 'modal-editar-colecao') colecaoEditandoId = null;
 }
 
-function abrirModalBackup() {
-  document.getElementById('modal-backup').classList.remove('oculto');
-}
+function abrirModalBackup() { document.getElementById('modal-backup').classList.remove('oculto'); }
 
 async function buscarLivroWeb() {
   const inputBusca = document.getElementById('buscaWebInput');
   const query = inputBusca.value.trim();
   const container = document.getElementById('resultados-busca');
   
-  if (!query) { mostrarAviso("Digite o nome ou ISBN do livro para buscar."); return; }
+  if (!query) { mostrarAviso("Digite o nome ou ISBN do livro."); return; }
 
   container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Buscando...</p>';
   container.classList.remove('oculto');
@@ -225,12 +367,10 @@ async function buscarLivroWeb() {
     if (respostas[1].status === 'fulfilled') resultadosMisturados = resultadosMisturados.concat(respostas[1].value);
 
     if (resultadosMisturados.length === 0) {
-      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado.</p>';
-      return;
+      container.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa; padding: 10px 0;">Nenhum livro encontrado.</p>'; return;
     }
 
     container.innerHTML = ''; 
-
     resultadosMisturados.forEach(livro => {
       const div = document.createElement('div');
       div.className = 'item-resultado-busca';
@@ -245,16 +385,12 @@ async function buscarLivroWeb() {
         document.getElementById('addTitulo').value = livro.titulo;
         document.getElementById('addAutor').value = livro.autor;
         document.getElementById('addImagem').value = livro.imagem;
-        container.classList.add('oculto');
-        inputBusca.value = '';
+        container.classList.add('oculto'); inputBusca.value = '';
         mostrarAviso("Dados preenchidos! Só clicar em Adicionar.");
       };
       container.appendChild(div);
     });
-
-  } catch (error) {
-    container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro ao buscar na internet.</p>';
-  }
+  } catch (error) { container.innerHTML = '<p style="color:#ff4d4d; font-size:12px; text-align:center; padding: 10px 0;">Erro ao buscar na internet.</p>'; }
 }
 
 function abrirModalAddLivro() {
@@ -284,6 +420,8 @@ function salvarNovoLivro() {
 function apagarLivro() {
   if (confirm("Tem certeza que deseja apagar este livro da biblioteca?")) {
     minhaBiblioteca = minhaBiblioteca.filter(l => l.id !== livroEditandoStatus);
+    // Remove também as anotações para economizar espaço
+    delete anotacoesGlobais[livroEditandoStatus];
     salvarDados(); fecharModal('modal-status-livro'); renderizarEstante();
     mostrarAviso("Livro apagado com sucesso.");
   }
@@ -357,7 +495,6 @@ function removerLivroDaColecaoPelaEdicao(idLivro) {
   if (livro) {
     livro.colecaoPertencente = null;
     salvarDados(); abrirModalEditarColecao(colecaoEditandoId); renderizarEstante(); 
-    mostrarAviso("Livro removido da coleção.");
   }
 }
 
@@ -384,23 +521,71 @@ function apagarColecao() {
   }
 }
 
+// ==========================================
+// LÓGICA DO MODAL DE STATUS DO LIVRO (NOVO FORMATO)
+// ==========================================
 function abrirModalStatus(idLivro) {
   const livro = minhaBiblioteca.find(l => l.id === idLivro);
   if (!livro) return;
 
   livroEditandoStatus = livro.id;
+  
+  // Atualiza as tags de texto fixo que aparecem em cima
+  document.getElementById('txt-titulo-livro').innerText = livro.titulo;
+  document.getElementById('txt-autor-livro').innerText = livro.autor || 'Desconhecido';
   document.getElementById('img-status-livro').src = livro.imagem;
+
+  // Preenche os inputs escondidos para caso o usuário queira editar
   document.getElementById('editTituloLivro').value = livro.titulo;
   document.getElementById('editAutorLivro').value = livro.autor || '';
   document.getElementById('editImagemLivro').value = livro.imagem;
   document.getElementById('fileEditLivro').value = '';
+  
+  // Seta o status no seletor
   document.getElementById('select-status-livro').value = livro.status;
 
   const btnSairCol = document.getElementById('btn-remover-da-colecao');
   if(livro.colecaoPertencente) btnSairCol.classList.remove('oculto');
   else btnSairCol.classList.add('oculto');
 
+  // Garante que a área de edição comece escondida
+  document.getElementById('area-edicao-livro').classList.add('oculto');
   document.getElementById('modal-status-livro').classList.remove('oculto');
+}
+
+function toggleEdicaoLivro() {
+  const area = document.getElementById('area-edicao-livro');
+  if (area.classList.contains('oculto')) { area.classList.remove('oculto'); } 
+  else { area.classList.add('oculto'); }
+}
+
+function salvarEdicaoBasicaLivro() {
+  if (!livroEditandoStatus) return;
+  const livro = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
+  if (livro) {
+    livro.titulo = document.getElementById('editTituloLivro').value.trim() || livro.titulo;
+    livro.autor = document.getElementById('editAutorLivro').value.trim() || livro.autor;
+    livro.imagem = document.getElementById('editImagemLivro').value.trim() || livro.imagem;
+    
+    // Atualiza a tela imediatamente
+    document.getElementById('txt-titulo-livro').innerText = livro.titulo;
+    document.getElementById('txt-autor-livro').innerText = livro.autor || 'Desconhecido';
+    document.getElementById('img-status-livro').src = livro.imagem;
+
+    salvarDados(); renderizarEstante(); toggleEdicaoLivro();
+    mostrarAviso("Informações salvas!");
+  }
+}
+
+// SALVA O STATUS SOZINHO ASSIM QUE VOCÊ MEXER NO SELECT!
+function atualizarStatusAutomatico() {
+  if (!livroEditandoStatus) return;
+  const livro = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
+  if (livro) {
+    livro.status = document.getElementById('select-status-livro').value;
+    salvarDados(); renderizarEstante();
+    mostrarAviso("Status atualizado!");
+  }
 }
 
 function removerLivroDaColecaoPeloLivro() {
@@ -412,19 +597,9 @@ function removerLivroDaColecaoPeloLivro() {
   }
 }
 
-function salvarStatusLivro() {
-  if (!livroEditandoStatus) return;
-  const livro = minhaBiblioteca.find(l => l.id === livroEditandoStatus);
-  if (livro) {
-    livro.titulo = document.getElementById('editTituloLivro').value.trim() || livro.titulo;
-    livro.autor = document.getElementById('editAutorLivro').value.trim() || livro.autor;
-    livro.imagem = document.getElementById('editImagemLivro').value.trim() || livro.imagem;
-    livro.status = document.getElementById('select-status-livro').value;
-  }
-  salvarDados(); fecharModal('modal-status-livro'); renderizarEstante();
-  mostrarAviso("Livro atualizado!");
-}
-
+// ==========================================
+// RENDERIZAÇÃO E ORDENAÇÃO E BOLINHAS DE STATUS
+// ==========================================
 function fatiarArray(array, tamanho) {
   const fatiado = [];
   for (let i = 0; i < array.length; i += tamanho) fatiado.push(array.slice(i, i + tamanho));
@@ -432,11 +607,8 @@ function fatiarArray(array, tamanho) {
 }
 
 function toggleColecao(idColecao) {
-  if (colecoesExpandidas.includes(idColecao)) {
-    colecoesExpandidas = colecoesExpandidas.filter(id => id !== idColecao);
-  } else {
-    colecoesExpandidas.push(idColecao);
-  }
+  if (colecoesExpandidas.includes(idColecao)) { colecoesExpandidas = colecoesExpandidas.filter(id => id !== idColecao); } 
+  else { colecoesExpandidas.push(idColecao); }
   renderizarEstante();
 }
 
@@ -456,19 +628,10 @@ function gerarDotsStatus(livros) {
   });
 
   let html = '<div class="status-dots-wrapper" onclick="event.stopPropagation()">'; 
-  
-  if (lidos > 0) {
-    html += `<div class="dot-item" tabindex="0" data-tooltip="${lidos} Lido${lidos>1?'s':''}"><div class="circle dot-verde"></div><span class="dot-count">${lidos}</span></div>`;
-  }
-  if (lendo > 0) {
-    html += `<div class="dot-item" tabindex="0" data-tooltip="${lendo} Lendo"><div class="circle dot-carmim"></div><span class="dot-count">${lendo}</span></div>`;
-  }
-  if (naoLidos > 0) {
-    html += `<div class="dot-item" tabindex="0" data-tooltip="${naoLidos} Não Lido${naoLidos>1?'s':''}"><div class="circle dot-cinza"></div><span class="dot-count">${naoLidos}</span></div>`;
-  }
-  
-  html += '</div>';
-  return html;
+  if (lidos > 0) { html += `<div class="dot-item" tabindex="0" data-tooltip="${lidos} Lido${lidos>1?'s':''}"><div class="circle dot-verde"></div><span class="dot-count">${lidos}</span></div>`; }
+  if (lendo > 0) { html += `<div class="dot-item" tabindex="0" data-tooltip="${lendo} Lendo"><div class="circle dot-carmim"></div><span class="dot-count">${lendo}</span></div>`; }
+  if (naoLidos > 0) { html += `<div class="dot-item" tabindex="0" data-tooltip="${naoLidos} Não Lido${naoLidos>1?'s':''}"><div class="circle dot-cinza"></div><span class="dot-count">${naoLidos}</span></div>`; }
+  html += '</div>'; return html;
 }
 
 function renderizarEstante() {
@@ -482,52 +645,34 @@ function renderizarEstante() {
     
     minhasColecoes.forEach(colecao => {
       const isExpandida = colecoesExpandidas.includes(colecao.id);
-      const colBox = document.createElement('div');
-      colBox.className = 'colecao-accordion-box';
-      const colHeader = document.createElement('div');
-      colHeader.className = 'colecao-header';
+      const colBox = document.createElement('div'); colBox.className = 'colecao-accordion-box';
+      const colHeader = document.createElement('div'); colHeader.className = 'colecao-header';
       
-      const btnToggle = document.createElement('button');
-      btnToggle.className = 'btn-colecao-toggle';
+      const btnToggle = document.createElement('button'); btnToggle.className = 'btn-colecao-toggle';
       btnToggle.onclick = () => toggleColecao(colecao.id);
       
       let livrosDaColecao = minhaBiblioteca.filter(l => l.colecaoPertencente === colecao.id);
-      
       const rotSeta = isExpandida ? '180deg' : '0deg';
       const dotsHtml = gerarDotsStatus(livrosDaColecao); 
 
-      btnToggle.innerHTML = `
-        <span style="flex:1; text-align:left; font-size:14px; font-weight:bold; display:flex; align-items:center; gap:8px;">📚 ${colecao.nome}</span>
-        ${dotsHtml}
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${rotSeta}); transition: transform 0.3s ease;">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      `;
+      btnToggle.innerHTML = `<span style="flex:1; text-align:left; font-size:14px; font-weight:bold; display:flex; align-items:center; gap:8px;">📚 ${colecao.nome}</span>${dotsHtml}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${rotSeta}); transition: transform 0.3s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 
-      const btnEdit = document.createElement('button');
-      btnEdit.className = 'btn-colecao-editar';
+      const btnEdit = document.createElement('button'); btnEdit.className = 'btn-colecao-editar';
       btnEdit.onclick = () => abrirModalEditarColecao(colecao.id);
       btnEdit.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
 
-      colHeader.appendChild(btnToggle);
-      colHeader.appendChild(btnEdit);
-      colBox.appendChild(colHeader);
+      colHeader.appendChild(btnToggle); colHeader.appendChild(btnEdit); colBox.appendChild(colHeader);
 
       if (isExpandida) {
-        const estanteInterna = document.createElement('div');
-        estanteInterna.className = 'colecao-estante-conteudo';
-        
+        const estanteInterna = document.createElement('div'); estanteInterna.className = 'colecao-estante-conteudo';
         if (livrosDaColecao.length === 0) {
           estanteInterna.innerHTML = '<div class="prateleira"><p style="color: #666; width: 100%; text-align: center; font-size: 13px; margin-bottom: 20px;">Esta coleção está vazia.</p></div>';
         } else {
           livrosDaColecao = ordenarLivrosPorStatus(livrosDaColecao);
           const grupos = fatiarArray(livrosDaColecao, LIVROS_POR_PRATELEIRA);
           grupos.forEach(grupo => {
-            const prateleiraHtml = document.createElement('div');
-            prateleiraHtml.className = 'prateleira';
-            grupo.forEach(livro => {
-              prateleiraHtml.appendChild(gerarElementoLivro(livro));
-            });
+            const prateleiraHtml = document.createElement('div'); prateleiraHtml.className = 'prateleira';
+            grupo.forEach(livro => { prateleiraHtml.appendChild(gerarElementoLivro(livro)); });
             estanteInterna.appendChild(prateleiraHtml);
           });
         }
@@ -541,39 +686,25 @@ function renderizarEstante() {
   let livrosSoltos = minhaBiblioteca.filter(l => l.colecaoPertencente === null);
   
   if (livrosSoltos.length > 0 || minhaBiblioteca.length === 0) {
-    const secaoSoltos = document.createElement('div');
-    secaoSoltos.className = 'secao-soltos';
-    
+    const secaoSoltos = document.createElement('div'); secaoSoltos.className = 'secao-soltos';
     const dotsHtmlSoltos = gerarDotsStatus(livrosSoltos); 
 
     if (minhasColecoes.length > 0) {
-      secaoSoltos.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
-          <h3 style="color: #aaa; font-size: 14px; margin: 0;">Livros Soltos</h3>
-          ${dotsHtmlSoltos}
-        </div>
-      `;
+      secaoSoltos.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;"><h3 style="color: #aaa; font-size: 14px; margin: 0;">Livros Soltos</h3>${dotsHtmlSoltos}</div>`;
     }
 
     livrosSoltos = ordenarLivrosPorStatus(livrosSoltos);
-
     const gruposSoltos = fatiarArray(livrosSoltos, LIVROS_POR_PRATELEIRA);
     
     if (gruposSoltos.length === 0) {
-      const divVazia = document.createElement('div');
-      divVazia.className = 'prateleira';
-      secaoSoltos.appendChild(divVazia);
+      const divVazia = document.createElement('div'); divVazia.className = 'prateleira'; secaoSoltos.appendChild(divVazia);
     } else {
       gruposSoltos.forEach(grupo => {
-        const prateleiraHtml = document.createElement('div');
-        prateleiraHtml.className = 'prateleira';
-        grupo.forEach(livro => {
-          prateleiraHtml.appendChild(gerarElementoLivro(livro));
-        });
+        const prateleiraHtml = document.createElement('div'); prateleiraHtml.className = 'prateleira';
+        grupo.forEach(livro => { prateleiraHtml.appendChild(gerarElementoLivro(livro)); });
         secaoSoltos.appendChild(prateleiraHtml);
       });
     }
-    
     container.appendChild(secaoSoltos);
   }
 }
@@ -585,8 +716,7 @@ function formatarStatus(status) {
 }
 
 function gerarElementoLivro(livro) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'livro-wrapper';
+  const wrapper = document.createElement('div'); wrapper.className = 'livro-wrapper';
   wrapper.onclick = () => abrirModalStatus(livro.id);
 
   const htmlExtras = `<div class="status-badge status-${livro.status}">${formatarStatus(livro.status)}</div>`;
@@ -600,7 +730,6 @@ function gerarElementoLivro(livro) {
       <span class="livro-autor-texto">${livro.autor ? livro.autor : 'Desconhecido'}</span>
     </div>
   `;
-
   return wrapper;
 }
 
@@ -620,27 +749,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.url && data.url.endsWith('.mbib')) {
           try {
             mostrarAviso("Carregando arquivo de backup...");
-            
-            const contents = await Filesystem.readFile({
-              path: data.url,
-              // CORREÇÃO 2: Força o Android a ler e entregar o texto traduzido (UTF-8)
-              encoding: 'utf8' 
-            });
-
-            // CORREÇÃO 3: Tiramos a função atob() que destruía os acentos
+            const contents = await Filesystem.readFile({ path: data.url, encoding: 'utf8' });
             const dados = JSON.parse(contents.data);
 
             if (dados.biblioteca && dados.colecoes) {
               minhaBiblioteca = dados.biblioteca;
               minhasColecoes = dados.colecoes;
-              salvarDados();
-              renderizarEstante();
+              if (dados.anotacoes) anotacoesGlobais = dados.anotacoes;
+              
+              salvarDados(); renderizarEstante();
               mostrarAviso("Biblioteca restaurada do arquivo!");
             }
-          } catch (error) {
-            console.error("Erro ao ler .mbib externo:", error);
-            mostrarAviso("Erro ao ler o arquivo .mbib.");
-          }
+          } catch (error) { mostrarAviso("Erro ao ler o arquivo .mbib."); }
         }
       });
     }
