@@ -99,7 +99,7 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   4. ACORDEÃO E BOLINHAS DE STATUS (NOVO!)
+   4. ACORDEÃO E BOLINHAS DE STATUS
    ========================================= */
 .secao-colecoes { margin-bottom: 20px; }
 .colecao-accordion-box { margin-bottom: 10px; }
@@ -202,15 +202,16 @@ input:focus { border-color: var(--cor-destaque); }
   width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
   background-color: rgba(0,0,0,0.6); padding: 4px 0; text-align: center;
 }
+
 .livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: bold; color: #fff; }
 
 .livro-autor-texto {
   display: block; 
   white-space: nowrap; 
   overflow: hidden; 
-  text-overflow: ellipsis; /* Coloca "..." se o nome for muito grande */
+  text-overflow: ellipsis; 
   font-size: 11px; 
-  color: #888; /* Cor cinza, com pouco destaque */
+  color: #888; 
   font-weight: normal; 
   margin-top: 1px; 
   padding: 0 6px;
@@ -307,9 +308,6 @@ input:focus { border-color: var(--cor-destaque); }
     overflow-x: hidden;
     box-sizing: border-box;
   }
-.livro-autor-texto {
-    font-size: 9.5px;
-  }
 
   .prateleira {
     display: flex !important;
@@ -326,37 +324,20 @@ input:focus { border-color: var(--cor-destaque); }
     width: 100vw !important;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
+    padding-top: 15px !important; 
+    margin-top: -15px !important; 
   }
 
-  .prateleira::-webkit-scrollbar {
-    display: none;
-  }
+  .prateleira::-webkit-scrollbar { display: none; }
   
-  .livro-wrapper {
-    flex: 0 0 105px !important; 
-    width: 105px !important;
-  }
+  .livro-wrapper { flex: 0 0 105px !important; width: 105px !important; }
+  .livro-capa { width: 105px !important; height: 150px !important; }
+  .livro-titulo-container { width: 105px !important; padding: 4px 0; }
+  .livro-titulo-texto { font-size: 12px; }
+  .livro-autor-texto { font-size: 9.5px; }
+  .status-badge { font-size: 10px; padding: 4px 8px; top: 5px; left: -10px; }
+}
 
-  .livro-capa {
-    width: 105px !important;
-    height: 150px !important;
-  }
-
-  .livro-titulo-container {
-    width: 105px !important;
-    padding: 4px 0;
-  }
-  
-  .livro-titulo-texto {
-    font-size: 12px;
-  }
-  
-  .status-badge {
-    font-size: 10px;
-    padding: 4px 8px;
-    top: 5px;
-    left: -10px;
-  }
 /* =========================================
    9. TELA DE ANOTAÇÕES (A CENTRAL DO LIVRO)
    ========================================= */
@@ -368,7 +349,6 @@ input:focus { border-color: var(--cor-destaque); }
   background-size: 20px 20px; transition: transform 0.3s ease-in-out;
 }
 
-/* Efeito de deslizar para a direita quando fechada */
 .tela-secundaria.oculto { transform: translateX(100%); pointer-events: none; opacity: 0; }
 
 .header-anotacoes {
@@ -436,13 +416,41 @@ input:focus { border-color: var(--cor-destaque); }
   border-radius: 8px; padding: 0 15px; cursor: pointer; font-weight: bold; transition: all 0.2s;
 }
 .btn-add-nota:hover { background: var(--cor-vinho); border-color: var(--cor-destaque); }
-   
-}
 
 /* =========================================
-   CORREÇÃO DAS GAVETAS ESCONDIDAS
+   10. CORREÇÕES EXTRAS E BOTÕES FLUTUANTES
    ========================================= */
+
+/* Garante que o que está oculto, fique invisível e sem ocupar espaço */
 #area-edicao-livro.oculto,
 #resultados-busca.oculto {
   display: none !important;
+}
+
+/* Botão de Engrenagem Flutuante (Modal de Status) */
+#btn-engrenagem-edicao {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  width: 45px;
+  height: 45px;
+  font-size: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s, border-color 0.2s;
+  z-index: 50; 
+}
+
+/* Efeito de Zoom no Hover/Clique */
+#btn-engrenagem-edicao:hover, 
+#btn-engrenagem-edicao:active {
+  transform: scale(1.15); 
+  background-color: rgba(139, 28, 49, 0.5); 
+  border-color: var(--cor-destaque);
 }
