@@ -99,7 +99,7 @@ input:focus { border-color: var(--cor-destaque); }
 .btn-perigo:hover { background-color: rgba(255, 77, 77, 0.2); border-color: rgba(255, 77, 77, 0.6); }
 
 /* =========================================
-   4. ACORDEÃO E BOLINHAS DE STATUS
+   4. ACORDEÃO E BOLINHAS DE STATUS (NOVO!)
    ========================================= */
 .secao-colecoes { margin-bottom: 20px; }
 .colecao-accordion-box { margin-bottom: 10px; }
@@ -202,16 +202,15 @@ input:focus { border-color: var(--cor-destaque); }
   width: 125px; overflow: hidden; margin-top: 8px; border-radius: 4px; 
   background-color: rgba(0,0,0,0.6); padding: 4px 0; text-align: center;
 }
-
 .livro-titulo-texto { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: bold; color: #fff; }
 
 .livro-autor-texto {
   display: block; 
   white-space: nowrap; 
   overflow: hidden; 
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis; /* Coloca "..." se o nome for muito grande */
   font-size: 11px; 
-  color: #888; 
+  color: #888; /* Cor cinza, com pouco destaque */
   font-weight: normal; 
   margin-top: 1px; 
   padding: 0 6px;
@@ -308,6 +307,9 @@ input:focus { border-color: var(--cor-destaque); }
     overflow-x: hidden;
     box-sizing: border-box;
   }
+.livro-autor-texto {
+    font-size: 9.5px;
+  }
 
   .prateleira {
     display: flex !important;
@@ -324,10 +326,6 @@ input:focus { border-color: var(--cor-destaque); }
     width: 100vw !important;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
-
-    /* O truque para sobrepor sem estragar o tamanho e espaçamento: */
-    padding-top: 15px !important; 
-    margin-top: -15px !important; 
   }
 
   .prateleira::-webkit-scrollbar {
@@ -352,10 +350,6 @@ input:focus { border-color: var(--cor-destaque); }
   .livro-titulo-texto {
     font-size: 12px;
   }
-
-  .livro-autor-texto {
-    font-size: 9.5px;
-  }
   
   .status-badge {
     font-size: 10px;
@@ -363,4 +357,84 @@ input:focus { border-color: var(--cor-destaque); }
     top: 5px;
     left: -10px;
   }
+/* =========================================
+   9. TELA DE ANOTAÇÕES (A CENTRAL DO LIVRO)
+   ========================================= */
+.tela-secundaria {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: var(--cor-fundo); z-index: 2000;
+  overflow-y: auto; display: flex; flex-direction: column;
+  background-image: radial-gradient(rgba(74, 14, 23, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px; transition: transform 0.3s ease-in-out;
+}
+
+/* Efeito de deslizar para a direita quando fechada */
+.tela-secundaria.oculto { transform: translateX(100%); pointer-events: none; opacity: 0; }
+
+.header-anotacoes {
+  display: flex; align-items: center; gap: 15px; padding: 20px;
+  background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.btn-voltar {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+  font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; 
+  cursor: pointer; padding: 8px 15px; border-radius: 8px; transition: all 0.2s;
+}
+.btn-voltar:hover { background: rgba(255,255,255,0.15); }
+
+.header-anotacoes h2 { 
+  margin: 0; font-size: 16px; color: #fff; white-space: nowrap; 
+  overflow: hidden; text-overflow: ellipsis; flex: 1;
+}
+
+.container-anotacoes { 
+  padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; 
+}
+
+.topico-controle { display: flex; gap: 10px; margin-bottom: 30px; align-items: stretch; }
+.topico-controle input { margin-bottom: 0; }
+
+.topico-card {
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 20px; margin-bottom: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: border 0.3s;
+}
+.topico-card:hover { border-color: rgba(139, 28, 49, 0.4); }
+
+.topico-header { 
+  border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 15px; 
+  margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+}
+.topico-header h3 { margin: 0; color: var(--cor-destaque); font-size: 18px; }
+
+.btn-remover-topico {
+  background: transparent; border: none; color: #ff4d4d; opacity: 0.7;
+  cursor: pointer; font-size: 18px; transition: all 0.2s;
+}
+.btn-remover-topico:hover { opacity: 1; transform: scale(1.1); }
+
+.entrada-item {
+  background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 8px;
+  margin-bottom: 10px; font-size: 14px; line-height: 1.5; color: #f4f4f4;
+  border-left: 3px solid var(--cor-vinho); display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 10px; word-break: break-word;
+}
+
+.btn-remover-nota {
+  background: transparent; border: none; color: #aaa; cursor: pointer;
+  font-size: 12px; transition: color 0.2s; padding: 0; margin-top: 2px;
+}
+.btn-remover-nota:hover { color: #ff4d4d; }
+
+.add-entrada-box { display: flex; gap: 10px; margin-top: 15px; align-items: stretch; }
+.add-entrada-box input { margin-bottom: 0; border-radius: 8px; padding: 12px; font-size: 13px; }
+.btn-add-nota {
+  background: var(--cor-painel); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+  border-radius: 8px; padding: 0 15px; cursor: pointer; font-weight: bold; transition: all 0.2s;
+}
+.btn-add-nota:hover { background: var(--cor-vinho); border-color: var(--cor-destaque); }
+   
 }
